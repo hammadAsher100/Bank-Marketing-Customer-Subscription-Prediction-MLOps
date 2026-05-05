@@ -218,10 +218,10 @@ graph LR
 
 | Role | Member | Core Responsibilities | Key Deliverables |
 |:-----|:-------|:----------------------|:----------------|
-| **ML Engineer 1** *(Data Pipeline Lead)* | — | DVC pipeline setup, data validation with Great Expectations, feature engineering, SMOTE balancing | `src/data_pipeline/`, `.dvc/`, `dvc.yaml` |
-| **ML Engineer 2** *(Modeling Lead)* | — | XGBoost & LightGBM training, Optuna hyperopt, MLflow experiment tracking, model registry | `src/models/`, `params.yaml`, MLflow UI |
-| **MLOps Engineer** *(Deployment Lead)* | — | GitHub Actions CI/CD, Docker builds, Kubernetes deployment, FastAPI serving, Evidently drift monitoring, Terraform IaC | `.github/workflows/`, `docker/`, `kubernetes/`, `terraform/`, `src/serving/` |
-| **Data Scientist** *(Analytics Lead)* | — | Exploratory data analysis, feature importance analysis, Streamlit dashboard, stakeholder reporting | `notebooks/`, `streamlit_app.py`, `README.md` |
+| **ML Engineer 1**Rayyan*(Data Pipeline Lead)* | — | DVC pipeline setup, data validation with Great Expectations, feature engineering, SMOTE balancing | `src/data_pipeline/`, `.dvc/`, `dvc.yaml` |
+| **ML Engineer 2**Abdul Rehman*(Modeling Lead)* | — | XGBoost & LightGBM training, Optuna hyperopt, MLflow experiment tracking, model registry | `src/models/`, `params.yaml`, MLflow UI |
+| **MLOps Engineer**M.Hammad Asher*(Deployment Lead)* | — | GitHub Actions CI/CD, Docker builds, Kubernetes deployment, FastAPI serving, Evidently drift monitoring, Terraform IaC | `.github/workflows/`, `docker/`, `kubernetes/`, `terraform/`, `src/serving/` |
+| **Data Scientist**Sharjeel*(Analytics Lead)* | — | Exploratory data analysis, feature importance analysis, Streamlit dashboard, stakeholder reporting | `notebooks/`, `streamlit_app.py`, `README.md` |
 
 </div>
 
@@ -432,8 +432,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](./LICEN
 ![line](https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif)
 
 ⭐ **Star this repo if you find it useful!**
-
-*Built with ❤️ by Team Bank Marketing MLOps*
 
 [![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
 [![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://forthebadge.com)
