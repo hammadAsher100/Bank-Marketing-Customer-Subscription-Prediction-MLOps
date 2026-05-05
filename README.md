@@ -218,10 +218,10 @@ graph LR
 
 | Role | Member | Core Responsibilities | Key Deliverables |
 |:-----|:-------|:----------------------|:----------------|
-| **ML Engineer 1**Rayyan*(Data Pipeline Lead)* | — | DVC pipeline setup, data validation with Great Expectations, feature engineering, SMOTE balancing | `src/data_pipeline/`, `.dvc/`, `dvc.yaml` |
-| **ML Engineer 2**Abdul Rehman*(Modeling Lead)* | — | XGBoost & LightGBM training, Optuna hyperopt, MLflow experiment tracking, model registry | `src/models/`, `params.yaml`, MLflow UI |
-| **MLOps Engineer**M.Hammad Asher*(Deployment Lead)* | — | GitHub Actions CI/CD, Docker builds, Kubernetes deployment, FastAPI serving, Evidently drift monitoring, Terraform IaC | `.github/workflows/`, `docker/`, `kubernetes/`, `terraform/`, `src/serving/` |
-| **Data Scientist**Sharjeel*(Analytics Lead)* | — | Exploratory data analysis, feature importance analysis, Streamlit dashboard, stakeholder reporting | `notebooks/`, `streamlit_app.py`, `README.md` |
+| **ML Engineer 1***(Data Pipeline Lead)* | Rayyan | DVC pipeline setup, data validation with Great Expectations, feature engineering, SMOTE balancing | `src/data_pipeline/`, `.dvc/`, `dvc.yaml` |
+| **ML Engineer 2***(Modeling Lead)* | Abdul Rehman | XGBoost & LightGBM training, Optuna hyperopt, MLflow experiment tracking, model registry | `src/models/`, `params.yaml`, MLflow UI |
+| **MLOps Engineer***(Deployment Lead)* | M.Hammad Asher | GitHub Actions CI/CD, Docker builds, Kubernetes deployment, FastAPI serving, Evidently drift monitoring, Terraform IaC | `.github/workflows/`, `docker/`, `kubernetes/`, `terraform/`, `src/serving/` |
+| **Data Scientist***(Analytics Lead)* | Sharjeel | Exploratory data analysis, feature importance analysis, Streamlit dashboard, stakeholder reporting | `notebooks/`, `streamlit_app.py`, `README.md` |
 
 </div>
 
