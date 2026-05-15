@@ -4,11 +4,12 @@ from pathlib import Path
 # Ensure project root is in path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+# pyrefly: ignore [missing-import]
 from src.pyspark_workflow.etl import run_etl
+# pyrefly: ignore [missing-import]
 from src.pyspark_workflow.train import train_pyspark_model
 
 def main():
-    # Use ASCII characters for compatibility
     print("=" * 60)
     print("PYSPARK RETRAINING PIPELINE")
     print("=" * 60)
