@@ -9,7 +9,7 @@ data:
   features_path:   data_and_model/features/bank_features.csv
   processed_dir:   data_and_model/processed
   sep:             ";"
-  source_url:      ""            # Set to a direct download URL or leave blank to use DVC pull
+  source_url:      "https://archive.ics.uci.edu/ml/machine-learning-databases/00222/bank.zip"  # Set a direct download URL or leave blank to use DVC pull
   test_size:       0.20
   smote_k_neighbors: 5
 

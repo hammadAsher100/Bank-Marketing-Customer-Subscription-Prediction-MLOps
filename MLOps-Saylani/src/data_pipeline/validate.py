@@ -113,14 +113,14 @@ def validate():
     warnings  = [i for i in all_issues if i.startswith("WARNING")]
 
     for w in warnings:
-        print(f"  ⚠  {w}")
+        print(f"  WARNING: {w}")
     for c in criticals:
-        print(f"  ✗  {c}")
+        print(f"  CRITICAL: {c}")
 
     if criticals:
         raise ValueError(f"[validate] {len(criticals)} critical issue(s) found. Pipeline halted.")
 
-    print(f"[validate] ✓ Passed ({len(warnings)} warning(s))")
+    print(f"[validate] Passed ({len(warnings)} warning(s))")
 
 
 if __name__ == "__main__":

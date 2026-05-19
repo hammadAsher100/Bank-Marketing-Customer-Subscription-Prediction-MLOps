@@ -62,7 +62,7 @@ def engineer():
     df = encode(df)
 
     df.to_csv(FEATURES_PATH, index=False)
-    print(f"[engineer] ✓ Saved feature-engineered data to {FEATURES_PATH}  shape={df.shape}")
+    print(f"[engineer] Saved feature-engineered data to {FEATURES_PATH}  shape={df.shape}")
     print(f"[engineer]   Columns ({len(df.columns)}): {df.columns.tolist()}")
 
 

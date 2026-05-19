@@ -147,7 +147,7 @@ def train_lgbm(X_train, y_train, X_test, y_test):
 
         # Save model locally
         joblib.dump(model, MODEL_DIR / "lgbm_model.pkl")
-        print(f"[lgbm] ✓ Model saved to {MODEL_DIR / 'lgbm_model.pkl'}")
+        print(f"[lgbm] Model saved to {MODEL_DIR / 'lgbm_model.pkl'}")
 
         # Confusion matrix
         _plot_confusion_matrix(model, X_test, y_test, "LightGBM")
@@ -218,7 +218,7 @@ def train_xgb(X_train, y_train, X_test, y_test):
         print(f"[xgb] Test  metrics: {test_metrics}")
 
         joblib.dump(model, MODEL_DIR / "xgb_model.pkl")
-        print(f"[xgb] ✓ Model saved to {MODEL_DIR / 'xgb_model.pkl'}")
+        print(f"[xgb] Model saved to {MODEL_DIR / 'xgb_model.pkl'}")
 
         _plot_confusion_matrix(model, X_test, y_test, "XGBoost")
 
@@ -240,7 +240,7 @@ def _plot_confusion_matrix(model, X_test, y_test, name):
     plt.savefig(path, bbox_inches="tight")
     plt.close()
     mlflow.log_artifact(str(path))
-    print(f"[train] Confusion matrix saved → {path}")
+    print(f"[train] Confusion matrix saved to {path}")
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
