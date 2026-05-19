@@ -8,7 +8,7 @@ data:
   features_path:   data_and_model/features/bank_features.csv
   processed_dir:   data_and_model/processed
   sep:             ";"
-  source_url:      ""            # Set to a direct download URL or leave blank to use DVC pull
+  source_url:      "https://archive.ics.uci.edu/ml/machine-learning-databases/00222/bank.zip"  # Set a direct download URL or leave blank to use DVC pull
   test_size:       0.20
   smote_k_neighbors: 5
 
@@ -16,22 +16,33 @@ serving:
   port: 8000
 
 model:
-  n_estimators:   300
-  max_depth:      6
-  learning_rate:  0.05
-  subsample:      0.8
-  colsample_bytree: 0.8
-  scale_pos_weight: 1         
-  eval_metric:    logloss
+  experiment_name: bank_marketing_experiment
+  output_dir: data_and_model/models
+  n_trials:              50
+  n_estimators:          300
+  max_depth:             6
+  learning_rate:         0.05
+  subsample:             0.8
+  colsample_bytree:      0.8
+  scale_pos_weight:      1
+  eval_metric:           logloss
   early_stopping_rounds: 20
-  cv_folds:       5
+  cv_folds:              5
+  threshold:             0.5
+  min_child_weight:      1
+  gamma:                 0
+  reg_alpha:             0
+  reg_lambda:            1
 
 pyspark:
   app_name: "BankMarketingRetraining"
+  master: "local[*]"
   executor_memory: "2g"
   driver_memory: "2g"
   processed_path: "data_and_model/processed/pyspark_bank_processed.parquet"
   model_path: "data_and_model/models/pyspark_model"
+  output_dir: data_and_model/models
+
   
 monitoring:
   psi_threshold:  0.2

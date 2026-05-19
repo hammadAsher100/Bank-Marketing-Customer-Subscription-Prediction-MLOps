@@ -36,7 +36,7 @@ def load_model(model_name="lgbm", use_calibrated=True):
 
     model = joblib.load(model_path)
 
-    print(f"[predict] Loaded model → {model_path}")
+    print(f"[predict] Loaded model from {model_path}")
 
     return model
 
@@ -61,7 +61,7 @@ def predict(model_name="lgbm", use_calibrated=True, threshold=0.5):
     X_test = pd.read_csv(PROC_DIR / "X_test.csv")
     y_test = pd.read_csv(PROC_DIR / "y_test.csv").squeeze()
 
-    print(f"[predict] X_test shape → {X_test.shape}")
+    print(f"[predict] X_test shape: {X_test.shape}")
 
     # --------------------------------------------------------
     # PREDICT
@@ -124,7 +124,7 @@ def predict(model_name="lgbm", use_calibrated=True, threshold=0.5):
 
     results.to_csv(output_path, index=False)
 
-    print(f"\n[predict] Predictions saved → {output_path}")
+    print(f"\n[predict] Predictions saved to {output_path}")
 
     return results
 
@@ -183,7 +183,7 @@ def predict_single(sample: dict,
 
     prediction = 1 if prob_yes >= threshold else 0
 
-    label = "YES ✅" if prediction == 1 else "NO ❌"
+    label = "YES" if prediction == 1 else "NO"
 
     print(f"Probability of Subscription : {prob_yes:.4f}")
     print(f"Prediction                  : {label}")
@@ -244,7 +244,7 @@ def live_prediction(model_name="lgbm", use_calibrated=True):
             print(f"Probability : {result['probability']}")
 
         except Exception as e:
-            print(f"\n[predict] Error → {e}")
+            print(f"\n[predict] Error: {e}")
 
 
 # ============================================================
