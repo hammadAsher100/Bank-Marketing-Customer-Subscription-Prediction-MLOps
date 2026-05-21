@@ -1,7 +1,8 @@
 from pathlib import Path
 import pandas as pd
 import yaml
-PARAMS = yaml.safe_load(open("params.yaml"))
+ROOT = Path(__file__).resolve().parents[2]
+PARAMS = yaml.safe_load(open(ROOT / "params.yaml"))
 RAW_PATH = Path(PARAMS["data"]["raw_path"])
 
 EXPECTED_COLUMNS = [
@@ -30,16 +31,16 @@ def check_schema(df: pd.DataFrame) -> list[str]:
     missing = set(EXPECTED_COLUMNS) - set(df.columns)
     extra = set(df.columns) - set(EXPECTED_COLUMNS)
     if missing:
-        issues.append(f"CRITICAL — Missing columns: {sorted(missing)}")
+        issues.append(f"CRITICAL - Missing columns: {sorted(missing)}")
     if extra:
-        issues.append(f"WARNING  — Unexpected columns: {sorted(extra)}")
+        issues.append(f"WARNING - Unexpected columns: {sorted(extra)}")
     return issues
 
 
 def check_row_count(df: pd.DataFrame) -> list[str]:
     issues = []
     if len(df) < MIN_ROWS:
-        issues.append(f"CRITICAL — Only {len(df):,} rows (expected ≥ {MIN_ROWS:,})")
+        issues.append(f"CRITICAL - Only {len(df):,} rows (expected ≥ {MIN_ROWS:,})")
     return issues
 
 
@@ -49,21 +50,21 @@ def check_nulls(df: pd.DataFrame) -> list[str]:
     nulls = df.isnull().sum()
     bad = nulls[nulls > 0]
     if not bad.empty:
-        issues.append(f"CRITICAL — Null values found:\n{bad.to_string()}")
+        issues.append(f"CRITICAL - Null values found:\n{bad.to_string()}")
     return issues
 
 
 def check_target(df: pd.DataFrame) -> list[str]:
     issues = []
     if "y" not in df.columns:
-        return ["CRITICAL — Target column 'y' missing"]
+        return ["CRITICAL - Target column 'y' missing"]
     actual = set(df["y"].unique())
     unexpected = actual - VALID_TARGET_VALUES
     if unexpected:
-        issues.append(f"CRITICAL — Unexpected target values: {unexpected}")
+        issues.append(f"CRITICAL - Unexpected target values: {unexpected}")
     pos_rate = (df["y"] == "yes").mean()
     if pos_rate < 0.05 or pos_rate > 0.50:
-        issues.append(f"WARNING  — Unusual positive-class rate: {pos_rate:.2%}")
+        issues.append(f"WARNING - Unusual positive-class rate: {pos_rate:.2%}")
     return issues
 
 
@@ -80,7 +81,7 @@ def check_numeric_ranges(df: pd.DataFrame) -> list[str]:
             continue
         bad = df[(df[col] < lo) | (df[col] > hi)]
         if not bad.empty:
-            issues.append(f"WARNING  — {col}: {len(bad)} rows outside [{lo}, {hi}]")
+            issues.append(f"WARNING - {col}: {len(bad)} rows outside [{lo}, {hi}]")
     return issues
 
 
@@ -88,7 +89,7 @@ def check_duplicates(df: pd.DataFrame) -> list[str]:
     issues = []
     dup_rate = df.duplicated().mean()
     if dup_rate > MAX_DUPLICATE_RATE:
-        issues.append(f"WARNING  — Duplicate rate {dup_rate:.2%} exceeds threshold {MAX_DUPLICATE_RATE:.2%}")
+        issues.append(f"WARNING - Duplicate rate {dup_rate:.2%} exceeds threshold {MAX_DUPLICATE_RATE:.2%}")
     return issues
 
 
@@ -109,14 +110,14 @@ def validate():
     warnings  = [i for i in all_issues if i.startswith("WARNING")]
 
     for w in warnings:
-        print(f"  ⚠  {w}")
+        print(f"  WARNING: {w}")
     for c in criticals:
-        print(f"  ✗  {c}")
+        print(f"  CRITICAL: {c}")
 
     if criticals:
         raise ValueError(f"[validate] {len(criticals)} critical issue(s) found. Pipeline halted.")
 
-    print(f"[validate] ✓ Passed ({len(warnings)} warning(s))")
+    print(f"[validate] Passed ({len(warnings)} warning(s))")
 
 
 if __name__ == "__main__":

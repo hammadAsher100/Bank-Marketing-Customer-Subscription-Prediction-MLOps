@@ -44,8 +44,8 @@ def calibrate_model(model, X_train, y_train, X_test, y_test, method="isotonic", 
     raw_auc    = roc_auc_score(y_test, raw_probs)
     cal_auc    = roc_auc_score(y_test, cal_probs)
 
-    print(f"  Before calibration → AUC: {raw_auc:.4f}  Brier: {raw_brier:.4f}")
-    print(f"  After  calibration → AUC: {cal_auc:.4f}  Brier: {cal_brier:.4f}")
+    print(f"  Before calibration - AUC: {raw_auc:.4f}  Brier: {raw_brier:.4f}")
+    print(f"  After calibration - AUC: {cal_auc:.4f}  Brier: {cal_brier:.4f}")
     print(f"  Brier score improvement: {raw_brier - cal_brier:.4f}  (lower is better)")
 
     # Plot calibration curve (reliability diagram)
@@ -54,7 +54,7 @@ def calibrate_model(model, X_train, y_train, X_test, y_test, method="isotonic", 
     # Save calibrated model
     save_path = MODEL_DIR / f"{name}_calibrated.pkl"
     joblib.dump(calibrated, save_path)
-    print(f"[calibrate] ✓ Calibrated model saved → {save_path}")
+    print(f"[calibrate] Calibrated model saved to {save_path}")
 
     # Log to MLflow
     with mlflow.start_run(run_name=f"{name}-calibration"):
@@ -96,7 +96,7 @@ def _plot_calibration_curve(y_test, raw_probs, cal_probs, name):
     path = MODEL_DIR / f"{name}_calibration_curve.png"
     plt.savefig(path, bbox_inches="tight")
     plt.close()
-    print(f"[calibrate] Calibration curve saved → {path}")
+    print(f"[calibrate] Calibration curve saved to {path}")
 
 
 if __name__ == "__main__":

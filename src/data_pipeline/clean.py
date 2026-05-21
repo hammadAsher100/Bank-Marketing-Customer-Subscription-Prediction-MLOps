@@ -66,7 +66,7 @@ def clean():
     df = df.reset_index(drop=True)
 
     df.to_csv(CLEANED_PATH, index=False)
-    print(f"[clean] ✓ Saved cleaned data to {CLEANED_PATH}  shape={df.shape}")
+    print(f"[clean] Saved cleaned data to {CLEANED_PATH}  shape={df.shape}")
 
 
 if __name__ == "__main__":

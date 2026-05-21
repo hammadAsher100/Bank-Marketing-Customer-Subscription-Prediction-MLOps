@@ -1,11 +1,16 @@
 import os
+from pathlib import Path
 import yaml
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+ROOT = Path(__file__).resolve().parents[2]
+with open(ROOT / "params.yaml", "r") as f:
+    PARAMS = yaml.safe_load(f)
+
 
 # Load parameters
-with open("params.yaml", "r") as f:
-    PARAMS = yaml.safe_load(f)
+# with open("params.yaml", "r") as f:
+#     PARAMS = yaml.safe_load(f)
 
 def create_spark_session():
     import platform
