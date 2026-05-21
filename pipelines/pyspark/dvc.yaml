@@ -1,0 +1,31 @@
+stages:
+  pyspark_etl:
+    cmd: python ../../src/pyspark_workflow/etl.py
+    deps:
+      - ../../src/pyspark_workflow/etl.py
+      - ../../data_and_model/raw/bank-full.csv
+      - ../../params.yaml
+    params:
+      - ../../params.yaml:
+        - pyspark.app_name
+        - pyspark.executor_memory
+        - pyspark.driver_memory
+        - pyspark.processed_path
+    outs:
+      - ../../data_and_model/processed/pyspark_bank_processed.parquet:
+          cache: true
+
+  pyspark_train:
+    cmd: python ../../src/pyspark_workflow/train.py
+    deps:
+      - ../../src/pyspark_workflow/train.py
+      - ../../data_and_model/processed/pyspark_bank_processed.parquet
+      - ../../params.yaml
+    params:
+      - ../../params.yaml:
+        - pyspark.model_path
+        - data.test_size
+        - base.random_state
+    outs:
+      - ../../data_and_model/models/pyspark_model:
+          cache: true
