@@ -38,7 +38,7 @@ def balance():
     # ── SMOTE on train only ──────────────────────────────────────────────────
     smote = SMOTE(k_neighbors=SMOTE_K, random_state=RANDOM_STATE)
     X_train_bal, y_train_bal = smote.fit_resample(X_train, y_train)
-    print(f"[balance] After SMOTE — Train: {len(X_train_bal)}  "
+    print(f"[balance] After SMOTE - Train: {len(X_train_bal)}  "
           f"Class dist:\n{pd.Series(y_train_bal).value_counts().to_string()}")
 
     # ── Save ────────────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ def balance():
     X_test.to_csv(PROCESSED_DIR / "X_test.csv", index=False)
     y_test.to_csv(PROCESSED_DIR / "y_test.csv", index=False)
 
-    print(f"[balance] ✓ Balanced datasets saved to {PROCESSED_DIR}")
+    print(f"[balance] Balanced datasets saved to {PROCESSED_DIR}")
 
 
 if __name__ == "__main__":

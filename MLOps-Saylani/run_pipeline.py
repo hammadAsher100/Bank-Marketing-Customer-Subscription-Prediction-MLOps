@@ -6,13 +6,13 @@ sys.path.insert(0, str(Path(__file__).parent))
 from src.data_pipeline.download import download
 from src.data_pipeline.validate import validate
 from src.data_pipeline.clean    import clean
-from src.data_pipeline.engineer import engineer
+from src.data_pipeline.feature_engineering import engineer
 from src.data_pipeline.balance  import balance
 
 
 def main():
     print("=" * 60)
-    print("BANK MARKETING — DATA PIPELINE (Engineer 1)")
+    print("BANK MARKETING - DATA PIPELINE (Engineer 1)")
     print("=" * 60)
 
     stages = [
@@ -24,11 +24,11 @@ def main():
     ]
 
     for label, fn in stages:
-        print(f"\n── {label} ──")
+        print(f"\n-- {label} --")
         fn()
 
     print("\n" + "=" * 60)
-    print("✓ Data pipeline complete. Outputs in data_and_model/")
+    print("Data pipeline complete. Outputs in data_and_model/")
     print("=" * 60)
 
 
