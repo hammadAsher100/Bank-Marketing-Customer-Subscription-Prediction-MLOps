@@ -7,7 +7,9 @@ import streamlit as st
 import requests
 import pandas as pd
 
-API_URL = "http://localhost:8000"
+import os
+
+API_URL = os.environ.get("API_URL", "http://localhost:8000")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STYLING & PAGE CONFIGURATION (UI layer only)
