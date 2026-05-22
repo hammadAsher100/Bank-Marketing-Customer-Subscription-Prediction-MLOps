@@ -1,0 +1,10 @@
+.venv
+__pycache__
+*.pyc
+.git
+hadoop/
+.pytest_cache/
+tests/
+mlruns/
+data_and_model/raw/
+data_and_model/processed/

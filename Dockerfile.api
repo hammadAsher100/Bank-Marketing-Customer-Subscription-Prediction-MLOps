@@ -1,0 +1,26 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies (Java for PySpark, libgomp1 for LightGBM/XGBoost)
+RUN apt-get update && apt-get install -y \
+    default-jre \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code and configuration
+COPY src/ /app/src/
+COPY params.yaml /app/
+
+# Create necessary directories for models if mounting fails
+RUN mkdir -p /app/data_and_model/models
+
+EXPOSE 8000
+
+CMD ["uvicorn", "src.serving.api:app", "--host", "0.0.0.0", "--port", "8000"]
