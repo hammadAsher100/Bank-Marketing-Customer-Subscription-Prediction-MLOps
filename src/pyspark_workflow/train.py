@@ -1,4 +1,11 @@
 import os
+import sys
+
+if sys.platform == "win32":
+    hadoop_home = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hadoop"))
+    os.environ["HADOOP_HOME"] = hadoop_home
+    os.environ["PATH"] = os.path.join(hadoop_home, "bin") + os.pathsep + os.environ.get("PATH", "")
+
 import yaml
 import mlflow
 import mlflow.spark

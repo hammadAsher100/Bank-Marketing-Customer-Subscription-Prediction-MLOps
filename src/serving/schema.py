@@ -133,6 +133,7 @@ class PredictResponse(BaseModel):
     model_used:     str   = Field(..., description="Model that made the prediction")
     threshold_used: float = Field(..., description="Decision threshold applied")
     label:          str   = Field(..., description="Human readable result")
+    message:        Optional[str] = Field(None, description="Optional warning or info message")
 
     model_config = {"json_schema_extra": {
         "example": {

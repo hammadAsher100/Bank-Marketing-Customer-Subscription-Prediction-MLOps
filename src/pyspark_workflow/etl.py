@@ -1,6 +1,13 @@
 import os
 from pathlib import Path
+import sys
 import yaml
+
+if sys.platform == "win32":
+    hadoop_home = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hadoop"))
+    os.environ["HADOOP_HOME"] = hadoop_home
+    os.environ["PATH"] = os.path.join(hadoop_home, "bin") + os.pathsep + os.environ.get("PATH", "")
+
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 ROOT = Path(__file__).resolve().parents[2]
