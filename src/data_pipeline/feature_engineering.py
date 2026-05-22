@@ -39,7 +39,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def encode(df: pd.DataFrame) -> pd.DataFrame:
-    cat_cols = df.select_dtypes(include=["object", "str"]).columns.tolist()
+    cat_cols = df.select_dtypes(include=["object", "string"]).columns.tolist()
     # Remove target if it somehow ended up as object
     cat_cols = [c for c in cat_cols if c != "y"]
 

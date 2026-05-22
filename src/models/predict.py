@@ -75,9 +75,25 @@ def load_spark_model():
     """
     Load the PySpark PipelineModel from disk.
     Only imported when needed to avoid Spark startup cost.
+    Validates model exists BEFORE starting SparkSession to fail fast.
     """
     global _spark_model_cache
     if _spark_model_cache is None:
+        # Validate model exists BEFORE starting expensive SparkSession
+        model_path = Path(SPARK_MODEL_PATH)
+        if not model_path.exists():
+            raise FileNotFoundError(
+                f"PySpark model not found at {model_path}. "
+                "Run the PySpark training pipeline first: "
+                "python src/pyspark_workflow/run_pyspark_pipeline.py"
+            )
+        if not (model_path / "metadata").exists():
+            raise FileNotFoundError(
+                f"PySpark model at {model_path} is incomplete (missing metadata/). "
+                "The model may not have been trained successfully. "
+                "Re-run: python src/pyspark_workflow/run_pyspark_pipeline.py"
+            )
+
         from pyspark.sql import SparkSession
         from pyspark.ml import PipelineModel
 
@@ -88,13 +104,7 @@ def load_spark_model():
             .getOrCreate()
         spark.sparkContext.setLogLevel("ERROR")
 
-        model_path = SPARK_MODEL_PATH
-        if not Path(model_path).exists():
-            raise FileNotFoundError(
-                f"PySpark model not found at {model_path}. "
-                "Run run_pyspark_pipeline.py first."
-            )
-        _spark_model_cache = (spark, PipelineModel.load(model_path))
+        _spark_model_cache = (spark, PipelineModel.load(str(model_path)))
         print(f"[predict] Loaded PySpark model from {model_path}")
     return _spark_model_cache
 
