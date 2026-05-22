@@ -63,17 +63,17 @@ async def startup_event():
     print("[API] Preloading models...")
     try:
         load_sklearn_model("lgbm")
-        print("[API] ✅ LightGBM model loaded")
+        print("[API] OK LightGBM model loaded")
     except FileNotFoundError as e:
-        print(f"[API] ⚠️  LightGBM not found: {e}")
+        print(f"[API] WARN LightGBM not found: {e}")
 
     try:
         load_sklearn_model("xgb")
-        print("[API] ✅ XGBoost model loaded")
+        print("[API] OK XGBoost model loaded")
     except FileNotFoundError as e:
-        print(f"[API] ⚠️  XGBoost not found: {e}")
+        print(f"[API] WARN XGBoost not found: {e}")
 
-    print(f"[API] 🚀 Server ready at http://localhost:{PORT}")
+    print(f"[API] Server ready at http://localhost:{PORT}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -99,7 +99,8 @@ def health_check():
     """
     lgbm_ok  = (MODEL_DIR / "lgbm_model.pkl").exists()
     xgb_ok   = (MODEL_DIR / "xgb_model.pkl").exists()
-    spark_ok = Path(PARAMS["pyspark"]["model_path"]).exists()
+    spark_dir = Path(PARAMS["pyspark"]["model_path"])
+    spark_ok = spark_dir.exists() and (spark_dir / "metadata").exists()
     mlflow_ok = (ROOT / "mlflow.db").exists()
 
     return HealthResponse(
