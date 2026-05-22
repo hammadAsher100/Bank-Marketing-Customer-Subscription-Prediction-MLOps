@@ -617,6 +617,9 @@ elif page == "🔮 Predict":
             st.divider()
             st.markdown("### Prediction Results")
 
+            if "message" in result:
+                st.warning(f"⚠️ **Note:** {result['message']}")
+            
             r1, r2 = st.columns([2, 1], gap="large")
 
             with r1:
@@ -763,6 +766,11 @@ elif page == "📁 Batch Predict":
                         )
                         if resp.status_code == 200:
                             br = resp.json()
+                            
+                            # Check for fallback message
+                            if br.get("model_used") == "lgbm_fallback" and br.get("message"):
+                                st.warning(f"⚠️ **Note:** {br['message']}")
+
                             st.toast(
                                 f"Batch complete: {br['subscribers']} subscribers / {br['total_records']} total",
                                 icon="✅",

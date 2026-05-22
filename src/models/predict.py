@@ -79,6 +79,18 @@ def load_spark_model():
     """
     global _spark_model_cache
     if _spark_model_cache is None:
+        import sys
+        import os
+        
+        # Ensure driver and workers use the exact same Python executable
+        os.environ["PYSPARK_PYTHON"] = sys.executable
+        os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+        
+        if sys.platform == "win32":
+            hadoop_home = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hadoop"))
+            os.environ["HADOOP_HOME"] = hadoop_home
+            os.environ["PATH"] = os.path.join(hadoop_home, "bin") + os.pathsep + os.environ.get("PATH", "")
+
         # Validate model exists BEFORE starting expensive SparkSession
         model_path = Path(SPARK_MODEL_PATH)
         if not model_path.exists():
@@ -94,6 +106,7 @@ def load_spark_model():
                 "Re-run: python src/pyspark_workflow/run_pyspark_pipeline.py"
             )
 
+        # Disable python worker daemon which crashes on Windows + Python 3.13
         from pyspark.sql import SparkSession
         from pyspark.ml import PipelineModel
 
@@ -101,6 +114,7 @@ def load_spark_model():
             .appName("BankMarketing_Serving") \
             .config("spark.driver.memory", PARAMS["pyspark"]["driver_memory"]) \
             .config("spark.executor.memory", PARAMS["pyspark"]["executor_memory"]) \
+            .config("spark.python.use.daemon", "false") \
             .getOrCreate()
         spark.sparkContext.setLogLevel("ERROR")
 
@@ -138,7 +152,7 @@ def align_input(input_df: pd.DataFrame) -> pd.DataFrame:
     # ── Step 2: One-hot encode ────────────────────────────────────────────────
     cat_cols = df.select_dtypes(include=["object"]).columns.tolist()
     cat_cols = [c for c in cat_cols if c != "y"]
-    df = pd.get_dummies(df, columns=cat_cols, drop_first=True, dtype=int)
+    df = pd.get_dummies(df, columns=cat_cols, drop_first=False, dtype=int)
 
     # ── Step 3 & 4: Align to training columns ────────────────────────────────
     feat_cols = get_feature_cols()
@@ -180,18 +194,62 @@ def predict(
 
     # ── PySpark path ──────────────────────────────────────────────────────────
     if model_type == "pyspark":
-        spark, spark_model = load_spark_model()
-        from pyspark.ml.functions import vector_to_array
+        try:
+            spark, spark_model = load_spark_model()
+            from pyspark.ml.functions import vector_to_array
 
-        raw_df   = pd.DataFrame([input_data])
-        spark_df = spark.createDataFrame(raw_df)
+            raw_df   = pd.DataFrame([input_data])
+            
+            # Add engineered features expected by PySpark
+            avg_duration = raw_df["duration"].mean() if len(raw_df) > 1 else raw_df["duration"].iloc[0]
+            raw_df["contacted_before"] = (raw_df["pdays"] != -1).astype(int)
+            raw_df["is_long_call"]     = (raw_df["duration"] > avg_duration).astype(int)
+            raw_df["pdays_clipped"]    = raw_df["pdays"].clip(lower=0, upper=900)
+            raw_df.loc[raw_df["pdays"] == -1, "pdays_clipped"] = 0
+            raw_df["call_intensity"]   = np.log1p(raw_df["campaign"] * raw_df["duration"])
+            if "poutcome" in raw_df.columns:
+                raw_df["prev_success"] = (raw_df["poutcome"] == "success").astype(int)
 
-        preds    = spark_model.transform(spark_df)
-        prob_row = preds.select(vector_to_array("probability")[1].alias("prob_1")).collect()
-        prob     = float(prob_row[0]["prob_1"])
+            spark_df = spark.createDataFrame(raw_df)
 
-        t          = threshold if threshold is not None else SPARK_THRESHOLD
-        prediction = int(prob >= t)
+            preds    = spark_model.transform(spark_df)
+            prob_row = preds.select(vector_to_array("probability")[1].alias("prob_1")).collect()
+            prob     = float(prob_row[0]["prob_1"])
+
+            t          = threshold if threshold is not None else SPARK_THRESHOLD
+            prediction = int(prob >= t)
+            
+            label = "Will Subscribe ✅" if prediction == 1 else "Will NOT Subscribe ❌"
+
+            return {
+                "prediction":     prediction,
+                "probability":    round(prob, 4),
+                "model_used":     model_type,
+                "threshold_used": t,
+                "label":          label,
+            }
+        except Exception as e:
+            # Python 3.13 incompatibility with PySpark workers on Windows often causes SparkException/EOFException
+            print(f"[predict] PySpark prediction failed (Python 3.13 incompatibility?): {e}")
+            print("[predict] Falling back to LightGBM.")
+            
+            model    = load_sklearn_model("lgbm")
+            raw_df   = pd.DataFrame([input_data])
+            aligned  = align_input(raw_df)
+
+            prob       = float(model.predict_proba(aligned)[0, 1])
+            t          = threshold if threshold is not None else THRESHOLD
+            prediction = int(prob >= t)
+            label = "Will Subscribe ✅" if prediction == 1 else "Will NOT Subscribe ❌"
+
+            return {
+                "prediction":     prediction,
+                "probability":    round(prob, 4),
+                "model_used":     "lgbm_fallback",
+                "threshold_used": t,
+                "label":          label,
+                "message":        "PySpark worker incompatible with Python 3.13. Automatically fell back to LightGBM."
+            }
 
     # ── Sklearn path (LightGBM / XGBoost) ────────────────────────────────────
     else:

@@ -16,3 +16,4 @@ dvc>=3.40.0
 pytest>=8.0.0
 pytest-cov>=5.0.0
 pyspark==3.5.1
+lightgbm>=4.0.0
