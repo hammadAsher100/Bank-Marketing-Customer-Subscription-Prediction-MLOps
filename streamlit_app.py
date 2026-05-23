@@ -7,11 +7,16 @@ import streamlit as st
 import requests
 import pandas as pd
 import os
-# Use your live Render backend URL
-API_URL = "https://mlops-saylani.onrender.com"
 
-# Or better: use environment variable with fallback
-API_URL = st.secrets.get("API_URL", "https://mlops-saylani.onrender.com")
+# Get API URL from environment - Streamlit Secrets or env variables
+try:
+    API_URL = st.secrets.get("API_URL")
+except:
+    API_URL = None
+
+# Fallback to environment variable or localhost
+if not API_URL:
+    API_URL = os.environ.get("API_URL", "https://mlops-saylani.onrender.com")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STYLING & PAGE CONFIGURATION (UI layer only)

@@ -1,159 +1,200 @@
-# 🚀 Deployment Guide — Streamlit + Render
+# 🚀 Deployment Guide — Streamlit Cloud + Render
 
-## Option 1: Deploy on Streamlit Cloud (Free, Easy) + Render (Backend)
+## ✅ Pre-Deployment Checklist
 
-### Step 1: Deploy Backend on Render
+- [ ] Code pushed to GitHub
+- [ ] `app_render.py` exists in project root
+- [ ] `requirements-frontend.txt` and `requirements-backend.txt` created
+- [ ] `.streamlit/config.toml` and `.streamlit/secrets.toml` exist
+- [ ] Render and Streamlit Cloud accounts created
 
-1. **Create Render Account**
-   - Go to https://render.com
-   - Sign up with GitHub
+---
 
-2. **Create New Web Service**
-   - Click "New +" → "Web Service"
-   - Connect your GitHub repo
-   - Select this repository
+## Option 1: Deploy Backend on Render (Recommended)
 
-3. **Configure Backend Service**
+### Step 1: Create Render Account
+1. Go to https://render.com
+2. Sign up with GitHub account
+3. Authorize Render to access your repositories
+
+### Step 2: Deploy Backend Service
+1. Click **"New +"** → **"Web Service"**
+2. Select your GitHub repository (BankMarketingTermDeposit_Prediction)
+3. Configure settings:
    - **Name**: `bank-marketing-api`
    - **Environment**: Python 3
-   - **Build Command**: `pip install -r requirements.txt`
+   - **Build Command**: `pip install -r requirements-backend.txt`
    - **Start Command**: `python app_render.py`
-   - **Plan**: Free (or Starter for production)
+   - **Plan**: Free (upgradeable)
 
-4. **Add Environment Variables** (Settings → Environment)
-   - `PORT`: `8000` (auto-set by Render)
+4. Click **"Create Web Service"**
+5. Wait for deployment (3-5 minutes)
+6. **Copy your backend URL** from the dashboard (e.g., `https://bank-marketing-api-xxx.onrender.com`)
+7. Test it: Visit `https://bank-marketing-api-xxx.onrender.com/health`
+   - Should return: `{"status": "healthy", "models": {"lgbm": true, "xgb": true}}`
 
-5. **Deploy**
-   - Click "Create Web Service"
-   - Wait for deployment (~3-5 minutes)
-   - Copy your backend URL: `https://bank-marketing-api-xxx.onrender.com`
+---
 
-### Step 2: Deploy Frontend on Streamlit Cloud
+## Option 2: Deploy Frontend on Streamlit Cloud
 
-1. **Push Code to GitHub**
-   ```bash
-   git add .
-   git commit -m "Add deployment configuration"
-   git push origin main
+### Step 1: Create Streamlit Cloud Account
+1. Go to https://share.streamlit.io
+2. Sign in with GitHub
+3. Authorize Streamlit to access your repositories
+
+### Step 2: Deploy App
+1. Click **"Create app"**
+2. Configure:
+   - **Repository**: Select your repo
+   - **Branch**: `main`
+   - **Main file path**: `streamlit_app.py`
+
+3. Click **"Deploy"**
+4. Wait 2-3 minutes for deployment
+
+### Step 3: Add Backend URL to Secrets
+1. Go to your app on Streamlit Cloud
+2. Click **"☰" (menu)** → **"Settings"** → **"Secrets"**
+3. Add this exactly:
    ```
-
-2. **Create Streamlit Cloud Account**
-   - Go to https://share.streamlit.io
-   - Sign in with GitHub
-
-3. **Deploy New App**
-   - Click "New app"
-   - Select your repository
-   - Branch: `main`
-   - Main file path: `streamlit_app.py`
-
-4. **Add Secrets** (App settings → Secrets)
-   ```toml
    API_URL = "https://bank-marketing-api-xxx.onrender.com"
    ```
-   (Replace with your actual Render backend URL)
+   *(Replace `xxx` with your actual Render URL)*
 
-5. **Deploy**
-   - Click "Deploy"
-   - Wait for deployment (~2-3 minutes)
-   - Your app is live! 🎉
+4. Click **"Save"**
+5. Your app will redeploy automatically ✅
 
 ---
 
-## Option 2: Deploy Both on Render Using render.yaml
+## Option 3: Deploy Both on Render Using Blueprint (All-in-One)
 
-### Step 1: Create Render Account & Connect GitHub
-- Go to https://render.com
-- Sign up with GitHub
-
-### Step 2: Deploy Using Blueprint
-1. Click "New +" → "Blueprint"
-2. Select your GitHub repository
-3. Render will read `render.yaml` automatically
-4. Configure settings and deploy both services at once
-
----
-
-## Option 3: Deploy on Docker (Production)
-
-### Using Docker Compose
-
+### Step 1: Push Changes to GitHub
 ```bash
-docker-compose up --build
+git add -A
+git commit -m "Update deployment configuration"
+git push origin main
 ```
 
-This runs:
-- FastAPI Backend: `http://localhost:8000`
-- Streamlit Frontend: `http://localhost:8501`
+### Step 2: Deploy on Render
+1. Go to https://render.com/deploy
+2. Paste your GitHub repo URL
+3. Click **"Deploy"**
+4. Render will read `render.yaml` and deploy both services automatically
 
 ---
 
-## Testing After Deployment
+## ✅ Testing After Deployment
 
-1. **Check Backend Health**
-   ```
-   https://bank-marketing-api-xxx.onrender.com/health
-   ```
-   Should return: `{"status": "healthy", "models": {"lgbm": true, "xgb": true}}`
+### Test Backend
+```bash
+curl https://bank-marketing-api-xxx.onrender.com/health
+```
+Should return:
+```json
+{
+  "status": "healthy",
+  "models": {"lgbm": true, "xgb": true}
+}
+```
 
-2. **Check Streamlit Dashboard**
-   ```
-   https://bank-marketing-frontend-xxx.streamlit.app/
-   ```
-
-3. **Test Prediction**
-   - Go to Streamlit dashboard
-   - Fill in customer data
-   - Click "Predict"
-   - Should return prediction from backend ✅
-
----
-
-## Troubleshooting
-
-### Streamlit says "API is not connected"
-- ❌ **Check 1**: Wrong API_URL in Streamlit secrets
-  - Go to Streamlit Cloud → Settings → Secrets
-  - Verify API_URL matches your Render backend URL
-  - Format: `https://service-name-xxx.onrender.com` (no trailing slash)
-
-- ❌ **Check 2**: Backend is not running
-  - Go to Render dashboard
-  - Check backend service status
-  - Look at deployment logs for errors
-
-- ❌ **Check 3**: CORS issue
-  - The backend should have `CORS` enabled for all origins
-  - Check `src/serving/api.py` line with `CORSMiddleware`
-
-### Render says "Can't find main.py"
-- ✅ **Solution**: Use `app_render.py` as start command
-  - This file is in the project root
-  - Render will find it automatically
-
-### Models not loading
-- Check if `data_and_model/models/` folder exists in git
-- Models might need to be pushed with DVC:
-  ```bash
-  dvc push
-  git push origin main
-  ```
+### Test Frontend
+- Visit: `https://your-username-bank-marketing-frontend.streamlit.app`
+- Fill in some customer data
+- Click "Predict"
+- Should see prediction result ✅
 
 ---
 
-## Environment Variables Summary
+## ❌ Troubleshooting
 
-| Variable | Local | Streamlit | Render |
-|---|---|---|---|
-| `API_URL` | `http://localhost:8000` | ✅ Set in Secrets | Auto-configured |
-| `PORT` | `8000` | Auto | Auto (via app_render.py) |
+### Issue: "API is not connected" on Streamlit
+**Solution:**
+1. Check Streamlit Secrets are set correctly
+   - Go to Settings → Secrets
+   - Verify API_URL matches your Render backend URL
+   - No trailing slashes!
+
+2. Check backend is running
+   - Visit `https://bank-marketing-api-xxx.onrender.com/health`
+   - If error, check Render dashboard logs
+
+3. Check CORS is enabled
+   - Backend (`src/serving/api.py`) should have CORSMiddleware
+   - Should allow all origins for Streamlit Cloud
+
+### Issue: Render build fails
+**Solution:**
+1. Check you're using correct requirements file:
+   - Backend: `requirements-backend.txt`
+   - Frontend: `requirements-frontend.txt` (on Streamlit Cloud)
+
+2. Check `app_render.py` exists in root directory
+
+3. View build logs in Render dashboard
+
+### Issue: PySpark/DVC install fails
+**Solution:**
+- These are only needed for backend
+- Frontend uses lightweight `requirements-frontend.txt`
+- Ensure Streamlit Cloud uses correct requirements
 
 ---
 
-## Next Steps After Deployment
+## 📊 Environment Variables
 
-1. ✅ Monitor logs in Render dashboard
-2. ✅ Set up automatic redeployment on GitHub push
-3. ✅ Add custom domain (optional, Render provides free subdomain)
-4. ✅ Set up alerts for service downtime
-5. ✅ Regular model retraining with GitHub Actions
+| Service | Variable | Value |
+|---|---|---|
+| Streamlit Cloud | `API_URL` | `https://bank-marketing-api-xxx.onrender.com` |
+| Render Backend | `PORT` | `8000` (auto) |
+| Local Dev | `API_URL` | `http://localhost:8000` |
+
+---
+
+## 🔄 Updating After Deployment
+
+### Update Backend
+```bash
+git add src/
+git commit -m "Update backend logic"
+git push origin main
+```
+Render will automatically rebuild and redeploy.
+
+### Update Frontend
+```bash
+git add streamlit_app.py
+git commit -m "Update dashboard UI"
+git push origin main
+```
+Streamlit Cloud will automatically redeploy.
+
+---
+
+## 🚀 Next Steps After Live Deployment
+
+1. **Monitor Services**
+   - Set up email alerts in Render for downtime
+   - Monitor response times
+
+2. **Add Custom Domain** (Optional)
+   - Render: Add domain in Settings
+   - Streamlit: Premium feature
+
+3. **Set Up Retraining** (Optional)
+   - GitHub Actions: Create scheduled workflows
+   - Auto-retrain model weekly/daily
+
+4. **Add Authentication** (Optional)
+   - Streamlit: Use `streamlit-authenticator`
+   - Render: API key validation
+
+---
+
+## 📞 Support URLs
+
+- Render Dashboard: https://dashboard.render.com
+- Streamlit Cloud: https://share.streamlit.io
+- Backend Health: `https://bank-marketing-api-xxx.onrender.com/health`
+- Backend Docs: `https://bank-marketing-api-xxx.onrender.com/docs`
+- Frontend: `https://your-username-bank-marketing-frontend.streamlit.app`
+
