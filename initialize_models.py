@@ -1,0 +1,118 @@
+"""
+initialize_models.py
+This script trains/initializes models for Render deployment
+Runs during the build phase if models don't exist
+"""
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+
+import yaml
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from lightgbm import LGBMClassifier
+from xgboost import XGBClassifier
+import joblib
+
+print("[Init] Starting model initialization...")
+
+# Load params
+PARAMS = yaml.safe_load(open(ROOT / "params.yaml"))
+MODEL_DIR = Path(PARAMS["model"]["output_dir"])
+PROCESSED_DIR = Path(PARAMS["data"]["processed_dir"])
+
+# Ensure model directory exists
+MODEL_DIR.mkdir(parents=True, exist_ok=True)
+
+# Check if models already exist
+lgbm_path = MODEL_DIR / "lgbm_model.pkl"
+xgb_path = MODEL_DIR / "xgb_model.pkl"
+
+if lgbm_path.exists() and xgb_path.exists():
+    print("[Init] ✅ Models already exist. Skipping training.")
+    sys.exit(0)
+
+print("[Init] Loading training data...")
+
+# Load processed data
+try:
+    X_train = pd.read_csv(PROCESSED_DIR / "X_train_balanced.csv")
+    y_train = pd.read_csv(PROCESSED_DIR / "y_train_balanced.csv").values.ravel()
+    X_test = pd.read_csv(PROCESSED_DIR / "X_test.csv")
+    y_test = pd.read_csv(PROCESSED_DIR / "y_test.csv").values.ravel()
+except FileNotFoundError as e:
+    print(f"[Init] ❌ Error: {e}")
+    print("[Init] Processed data not found. Cannot train models.")
+    print("[Init] Skipping model training - API will start but predictions may fail.")
+    sys.exit(1)
+
+print(f"[Init] Training data shape: {X_train.shape}")
+print(f"[Init] Test data shape: {X_test.shape}")
+
+# ============================================================================
+# Train LightGBM Model
+# ============================================================================
+if not lgbm_path.exists():
+    print("[Init] Training LightGBM model...")
+    try:
+        lgbm_params = PARAMS["model"].get("lgbm_params", {
+            "n_estimators": 100,
+            "max_depth": 5,
+            "learning_rate": 0.05,
+            "random_state": 42
+        })
+        
+        lgbm_model = LGBMClassifier(**lgbm_params)
+        lgbm_model.fit(X_train, y_train)
+        
+        # Save model
+        joblib.dump(lgbm_model, lgbm_path)
+        print(f"[Init] ✅ LightGBM model saved to {lgbm_path}")
+        
+        # Calculate accuracy
+        accuracy = lgbm_model.score(X_test, y_test)
+        print(f"[Init] LightGBM Test Accuracy: {accuracy:.4f}")
+        
+    except Exception as e:
+        print(f"[Init] ⚠️  LightGBM training failed: {e}")
+
+# ============================================================================
+# Train XGBoost Model
+# ============================================================================
+if not xgb_path.exists():
+    print("[Init] Training XGBoost model...")
+    try:
+        xgb_params = PARAMS["model"].get("xgb_params", {
+            "n_estimators": 100,
+            "max_depth": 5,
+            "learning_rate": 0.05,
+            "random_state": 42,
+            "verbosity": 0
+        })
+        
+        xgb_model = XGBClassifier(**xgb_params)
+        xgb_model.fit(X_train, y_train)
+        
+        # Save model
+        joblib.dump(xgb_model, xgb_path)
+        print(f"[Init] ✅ XGBoost model saved to {xgb_path}")
+        
+        # Calculate accuracy
+        accuracy = xgb_model.score(X_test, y_test)
+        print(f"[Init] XGBoost Test Accuracy: {accuracy:.4f}")
+        
+    except Exception as e:
+        print(f"[Init] ⚠️  XGBoost training failed: {e}")
+
+# Save feature columns for later use
+print("[Init] Saving feature columns...")
+feature_cols = X_train.columns.tolist()
+joblib.dump(feature_cols, MODEL_DIR / "feature_columns.pkl")
+print(f"[Init] ✅ Feature columns saved ({len(feature_cols)} features)")
+
+print("[Init] ✅ Model initialization complete!")

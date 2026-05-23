@@ -23,12 +23,12 @@
 3. Configure settings:
    - **Name**: `bank-marketing-api`
    - **Environment**: Python 3
-   - **Build Command**: `pip install -r requirements-backend.txt`
+   - **Build Command**: `bash render-build.sh`
    - **Start Command**: `python app_render.py`
    - **Plan**: Free (upgradeable)
 
 4. Click **"Create Web Service"**
-5. Wait for deployment (3-5 minutes)
+5. Wait for deployment (5-10 minutes on first run - models are trained during build)
 6. **Copy your backend URL** from the dashboard (e.g., `https://bank-marketing-api-xxx.onrender.com`)
 7. Test it: Visit `https://bank-marketing-api-xxx.onrender.com/health`
    - Should return: `{"status": "healthy", "models": {"lgbm": true, "xgb": true}}`

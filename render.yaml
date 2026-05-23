@@ -4,7 +4,7 @@ services:
     name: bank-marketing-api
     env: python
     plan: free
-    buildCommand: pip install -r requirements-backend.txt
+    buildCommand: bash render-build.sh
     startCommand: python app_render.py
     healthCheckPath: /health
     healthCheckInterval: 300
