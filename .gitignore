@@ -19,6 +19,11 @@ lib64/
 venv/
 env/
 ENV/
+.venv311/
+.venv_old/
+mlflow.db
+*.db
+*.sqlite
 /data_and_model/raw/
 /data_and_model/processed/
 /data_and_model/features/
