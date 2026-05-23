@@ -63,13 +63,21 @@ if SPARK_MODEL_PATH.exists():
 
 print("[PySpark Init] Creating Spark session...")
 
+# Memory: env vars override params.yaml (Dockerfile.api sets 512m for Render)
+_driver_mem   = os.environ.get("SPARK_DRIVER_MEMORY",   PARAMS["pyspark"]["driver_memory"])
+_executor_mem = os.environ.get("SPARK_EXECUTOR_MEMORY", PARAMS["pyspark"]["executor_memory"])
+
 # Create Spark session
 spark = SparkSession.builder \
     .appName(PARAMS["pyspark"]["app_name"]) \
     .master(PARAMS["pyspark"]["master"]) \
-    .config("spark.driver.memory", PARAMS["pyspark"]["driver_memory"]) \
-    .config("spark.executor.memory", PARAMS["pyspark"]["executor_memory"]) \
+    .config("spark.driver.memory",         _driver_mem) \
+    .config("spark.executor.memory",        _executor_mem) \
+    .config("spark.python.use.daemon",      "false") \
+    .config("spark.sql.shuffle.partitions", "2") \
+    .config("spark.default.parallelism",    "2") \
     .getOrCreate()
+
 
 try:
     print("[PySpark Init] Loading training data...")

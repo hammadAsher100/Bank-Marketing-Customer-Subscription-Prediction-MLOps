@@ -1,16 +1,16 @@
 services:
-  # Backend API Service
+  # Backend API Service — uses Docker to get Java/PySpark support
+  # env: python (native Render) has NO Java, causing [JAVA_GATEWAY_EXITED]
+  # env: docker runs Dockerfile.api which installs openjdk-11
   - type: web
     name: bank-marketing-api
-    env: python
+    env: docker
+    dockerfilePath: ./Dockerfile.api
     plan: free
-    buildCommand: bash render-build.sh
-    startCommand: python app_render.py
     healthCheckPath: /health
     healthCheckInterval: 300
-    port: 8000
 
-  # Frontend Streamlit Service
+  # Frontend Streamlit Service — no Java needed, native Python is fine
   - type: web
     name: bank-marketing-frontend
     env: python
@@ -18,4 +18,3 @@ services:
     buildCommand: pip install -r requirements-frontend.txt
     startCommand: streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0
     depends_on: bank-marketing-api
-

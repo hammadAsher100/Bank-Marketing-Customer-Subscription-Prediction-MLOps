@@ -1,26 +1,57 @@
-FROM python:3.11-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install system dependencies (Java for PySpark, libgomp1 for LightGBM/XGBoost)
+# Install system dependencies:
+#   openjdk-11-jre-headless  → Java runtime required by PySpark
+#   libgomp1                 → OpenMP required by LightGBM/XGBoost
+#   procps                   → ps command (useful for debugging Spark workers)
 RUN apt-get update && apt-get install -y \
-    default-jre \
+    openjdk-11-jre-headless \
     libgomp1 \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
-ENV JAVA_HOME=/usr/lib/jvm/default-java
+# ── Java environment ───────────────────────────────────────────────────────────
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-# Install Python dependencies
+# ── PySpark Python paths ───────────────────────────────────────────────────────
+# Must point to the exact same Python executable to avoid
+# "Python in worker has different version" errors
+ENV PYSPARK_PYTHON=/usr/local/bin/python3.9
+ENV PYSPARK_DRIVER_PYTHON=/usr/local/bin/python3.9
+
+# ── Spark memory (tuned for Render free tier 512 MB RAM) ──────────────────────
+# Override params.yaml values which are 2g (too large for cloud free tier)
+ENV SPARK_DRIVER_MEMORY=512m
+ENV SPARK_EXECUTOR_MEMORY=512m
+
+# Disable Spark Python worker daemon to prevent zombie processes on Linux
+ENV SPARK_NO_DAEMONIZE=true
+
+# ── Python dependencies ────────────────────────────────────────────────────────
+# requirements.txt includes pyspark==3.5.1
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code and configuration
+# ── Application source ─────────────────────────────────────────────────────────
 COPY src/ /app/src/
 COPY params.yaml /app/
+COPY initialize_models.py /app/
+COPY initialize_pyspark_model.py /app/
+COPY app_render.py /app/
 
-# Create necessary directories for models if mounting fails
-RUN mkdir -p /app/data_and_model/models
+# ── Model directory ────────────────────────────────────────────────────────────
+# Copy pre-trained models if they exist locally (git-tracked or DVC-pulled).
+# initialize_*.py scripts will skip training if models already present.
+COPY data_and_model/models/ /app/data_and_model/models/
+
+# ── Model initialisation during build ─────────────────────────────────────────
+# Runs only if model files are missing (skipped if COPY above brought them in)
+RUN python initialize_models.py
+RUN python initialize_pyspark_model.py
 
 EXPOSE 8000
 
-CMD ["uvicorn", "src.serving.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "app_render.py"]
