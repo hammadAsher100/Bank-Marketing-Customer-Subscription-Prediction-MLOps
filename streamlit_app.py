@@ -9,7 +9,7 @@ import pandas as pd
 
 import os
 
-API_URL = os.environ.get("API_URL", "http://localhost:8000")
+API_URL = API_URL = "https://bank-marketing-backend.onrender.com"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STYLING & PAGE CONFIGURATION (UI layer only)
