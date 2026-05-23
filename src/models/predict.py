@@ -229,27 +229,18 @@ def predict(
                 "label":          label,
             }
         except Exception as e:
-            # Python 3.13 incompatibility with PySpark workers on Windows often causes SparkException/EOFException
-            print(f"[predict] PySpark prediction failed (Python 3.13 incompatibility?): {e}")
-            print("[predict] Falling back to LightGBM.")
+            # PySpark prediction failed - raise detailed error instead of silent fallback
+            print(f"[predict] ❌ PySpark prediction FAILED: {e}")
+            print(f"[predict] PySpark model path: {SPARK_MODEL_PATH}")
+            print(f"[predict] Error type: {type(e).__name__}")
             
-            model    = load_sklearn_model("lgbm")
-            raw_df   = pd.DataFrame([input_data])
-            aligned  = align_input(raw_df)
-
-            prob       = float(model.predict_proba(aligned)[0, 1])
-            t          = threshold if threshold is not None else THRESHOLD
-            prediction = int(prob >= t)
-            label = "Will Subscribe ✅" if prediction == 1 else "Will NOT Subscribe ❌"
-
-            return {
-                "prediction":     prediction,
-                "probability":    round(prob, 4),
-                "model_used":     "lgbm_fallback",
-                "threshold_used": t,
-                "label":          label,
-                "message":        "PySpark worker incompatible with Python 3.13. Automatically fell back to LightGBM."
-            }
+            # Raise the error so the user knows PySpark failed
+            # Do NOT silently fall back to another model
+            raise Exception(
+                f"PySpark model prediction failed: {str(e)}. "
+                f"This usually indicates Python 3.13 incompatibility or model training issues. "
+                f"Please try lgbm or xgb model instead."
+            ) from e
 
     # ── Sklearn path (LightGBM / XGBoost) ────────────────────────────────────
     else:
