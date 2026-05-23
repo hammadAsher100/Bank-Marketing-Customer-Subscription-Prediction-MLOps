@@ -255,18 +255,25 @@ def predict(
                 "label":          label,
             }
         except Exception as e:
-            # PySpark prediction failed - raise detailed error instead of silent fallback
+            # PySpark prediction failed - print detailed error and gracefully fall back to LGBM
             print(f"[predict] ❌ PySpark prediction FAILED: {e}")
-            print(f"[predict] PySpark model path: {SPARK_MODEL_PATH}")
             print(f"[predict] Error type: {type(e).__name__}")
+            print("[predict] Automatically falling back to LightGBM model for prediction.")
             
-            # Raise the error so the user knows PySpark failed
-            # Do NOT silently fall back to another model
-            raise Exception(
-                f"PySpark model prediction failed: {str(e)}. "
-                f"This usually indicates Python 3.13 incompatibility or model training issues. "
-                f"Please try lgbm or xgb model instead."
-            ) from e
+            # Call predict recursively using lgbm
+            fallback_result = predict(
+                input_data=input_data,
+                model_type="lgbm",
+                threshold=threshold,
+            )
+            
+            # Customize the metadata for the user/frontend to clearly explain the fallback
+            fallback_result["model_used"] = "pyspark_fallback (lgbm)"
+            fallback_result["message"] = (
+                f"PySpark prediction engine failed (Reason: {str(e)[:80]}...). "
+                f"We have automatically routed your request to the LightGBM fallback model."
+            )
+            return fallback_result
 
     # ── Sklearn path (LightGBM / XGBoost) ────────────────────────────────────
     else:
