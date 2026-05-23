@@ -6,6 +6,13 @@ import sys
 import os
 from pathlib import Path
 
+# Detect and set local JRE path (from portable installation on native Render)
+local_jre = Path(__file__).parent / "jre"
+if local_jre.exists():
+    os.environ["JAVA_HOME"] = str(local_jre.absolute())
+    os.environ["PATH"] = str(local_jre.absolute() / "bin") + os.pathsep + os.environ.get("PATH", "")
+    print(f"[Startup] Found local JRE at: {os.environ['JAVA_HOME']}")
+
 print("[Startup] ════════════════════════════════════════════")
 print("[Startup] Starting Bank Marketing API Server")
 print("[Startup] ════════════════════════════════════════════")

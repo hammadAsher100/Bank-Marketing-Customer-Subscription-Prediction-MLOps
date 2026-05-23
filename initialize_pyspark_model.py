@@ -11,6 +11,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
+# Detect and set local JRE path (from portable installation on native Render)
+local_jre = ROOT / "jre"
+if local_jre.exists():
+    os.environ["JAVA_HOME"] = str(local_jre.absolute())
+    os.environ["PATH"] = str(local_jre.absolute() / "bin") + os.pathsep + os.environ.get("PATH", "")
+    print(f"[PySpark Init] Found local JRE at: {os.environ['JAVA_HOME']}")
+
 print("[PySpark Init] Starting PySpark model initialization...")
 
 # Check if Java is available (required for PySpark)
@@ -21,7 +28,15 @@ if java_check != 0:
     
     # Try to install Java
     if sys.platform == "linux":
-        os.system("apt-get update && apt-get install -y default-jdk")
+        # Check if we can run apt-get, otherwise warning
+        if os.getuid() == 0 if hasattr(os, "getuid") else False:
+            os.system("apt-get update && apt-get install -y default-jdk")
+        else:
+            print("[PySpark Init] ⚠️  Not root user. Cannot use apt-get. Ensure portable JRE is installed.")
+            # Verify if java became available somehow, else exit
+            java_check = os.system("java -version > /dev/null 2>&1")
+            if java_check != 0:
+                sys.exit(1)
     elif sys.platform == "win32":
         print("[PySpark Init] Manual Java installation required on Windows")
         print("[PySpark Init] Download from: https://www.oracle.com/java/technologies/downloads/")

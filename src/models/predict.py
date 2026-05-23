@@ -94,6 +94,12 @@ def load_spark_model():
         if "PYSPARK_DRIVER_PYTHON" not in os.environ:
             os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
+        # ── Java JRE: detect local portable JRE (for native Render environment) 
+        local_jre = Path(ROOT) / "jre"
+        if local_jre.exists() and "JAVA_HOME" not in os.environ:
+            os.environ["JAVA_HOME"] = str(local_jre.absolute())
+            os.environ["PATH"] = str(local_jre.absolute() / "bin") + os.pathsep + os.environ.get("PATH", "")
+
         # ── Windows-only: Hadoop winutils ─────────────────────────────────────
         if sys.platform == "win32":
             hadoop_home = os.path.abspath(
