@@ -76,22 +76,35 @@ def load_spark_model():
     Load the PySpark PipelineModel from disk.
     Only imported when needed to avoid Spark startup cost.
     Validates model exists BEFORE starting SparkSession to fail fast.
+
+    Memory settings are read from env vars first, falling back to params.yaml.
+    Set SPARK_DRIVER_MEMORY / SPARK_EXECUTOR_MEMORY in the environment to
+    override the defaults (e.g. Dockerfile.api sets them to 512m for Render).
     """
     global _spark_model_cache
     if _spark_model_cache is None:
         import sys
         import os
-        
-        # Ensure driver and workers use the exact same Python executable
-        os.environ["PYSPARK_PYTHON"] = sys.executable
-        os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-        
-        if sys.platform == "win32":
-            hadoop_home = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hadoop"))
-            os.environ["HADOOP_HOME"] = hadoop_home
-            os.environ["PATH"] = os.path.join(hadoop_home, "bin") + os.pathsep + os.environ.get("PATH", "")
 
-        # Validate model exists BEFORE starting expensive SparkSession
+        # ── Python executable: driver & workers must use the same binary ──────
+        # If env vars are already set (e.g. by Dockerfile ENV), keep them.
+        # Otherwise fall back to the current interpreter.
+        if "PYSPARK_PYTHON" not in os.environ:
+            os.environ["PYSPARK_PYTHON"] = sys.executable
+        if "PYSPARK_DRIVER_PYTHON" not in os.environ:
+            os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+
+        # ── Windows-only: Hadoop winutils ─────────────────────────────────────
+        if sys.platform == "win32":
+            hadoop_home = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "..", "..", "hadoop")
+            )
+            os.environ["HADOOP_HOME"] = hadoop_home
+            os.environ["PATH"] = (
+                os.path.join(hadoop_home, "bin") + os.pathsep + os.environ.get("PATH", "")
+            )
+
+        # ── Validate model exists BEFORE starting expensive SparkSession ──────
         model_path = Path(SPARK_MODEL_PATH)
         if not model_path.exists():
             raise FileNotFoundError(
@@ -106,16 +119,23 @@ def load_spark_model():
                 "Re-run: python src/pyspark_workflow/run_pyspark_pipeline.py"
             )
 
-        # Disable python worker daemon which crashes on Windows + Python 3.13
+        # ── Memory: env vars override params.yaml (Docker sets 512m) ─────────
+        driver_mem   = os.environ.get("SPARK_DRIVER_MEMORY",   PARAMS["pyspark"]["driver_memory"])
+        executor_mem = os.environ.get("SPARK_EXECUTOR_MEMORY", PARAMS["pyspark"]["executor_memory"])
+
         from pyspark.sql import SparkSession
         from pyspark.ml import PipelineModel
 
-        spark = SparkSession.builder \
-            .appName("BankMarketing_Serving") \
-            .config("spark.driver.memory", PARAMS["pyspark"]["driver_memory"]) \
-            .config("spark.executor.memory", PARAMS["pyspark"]["executor_memory"]) \
-            .config("spark.python.use.daemon", "false") \
+        spark = (
+            SparkSession.builder
+            .appName("BankMarketing_Serving")
+            .config("spark.driver.memory",          driver_mem)
+            .config("spark.executor.memory",         executor_mem)
+            .config("spark.python.use.daemon",       "false")
+            .config("spark.sql.shuffle.partitions",  "2")   # reduce overhead
+            .config("spark.default.parallelism",     "2")
             .getOrCreate()
+        )
         spark.sparkContext.setLogLevel("ERROR")
 
         _spark_model_cache = (spark, PipelineModel.load(str(model_path)))

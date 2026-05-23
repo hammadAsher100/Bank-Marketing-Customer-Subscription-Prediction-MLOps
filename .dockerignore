@@ -1,10 +1,26 @@
 .venv
+.venv311
+.venv_old
 __pycache__
 *.pyc
+*.pyo
 .git
-hadoop/
-.pytest_cache/
+.github
+.dvc
+.pytest_cache
 tests/
 mlruns/
+# Exclude raw source data (large files, not needed for serving)
 data_and_model/raw/
-data_and_model/processed/
+# Exclude sklearn-pipeline processed CSVs (rebuild via initialize_models.py)
+# NOTE: Keep data_and_model/processed/pyspark_processed so PySpark trains
+#       on real features if available; otherwise initialize_pyspark_model.py
+#       will fall back to synthetic data automatically.
+data_and_model/processed/*.csv
+# Exclude Windows-only Hadoop binaries (Linux Docker doesn't need them)
+hadoop/
+# Dev artifacts
+notebooks/
+terraform/
+kubernetes/
+.streamlit/
