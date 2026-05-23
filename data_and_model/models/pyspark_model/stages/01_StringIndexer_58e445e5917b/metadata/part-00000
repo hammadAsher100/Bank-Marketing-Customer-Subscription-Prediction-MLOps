@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.StringIndexerModel","timestamp":1779452782522,"sparkVersion":"3.5.1","uid":"StringIndexer_58e445e5917b","paramMap":{"inputCol":"marital","outputCol":"marital_index","handleInvalid":"keep"},"defaultParamMap":{"handleInvalid":"error","outputCol":"StringIndexer_58e445e5917b__output","stringOrderType":"frequencyDesc"}}
