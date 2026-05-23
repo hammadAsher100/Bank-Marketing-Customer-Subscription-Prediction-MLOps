@@ -4,6 +4,16 @@ A production-grade MLOps pipeline to predict whether a bank client will subscrib
 
 ---
 
+## 🔗 Live Links
+
+| Resource | Link |
+|---|---|
+| 🌐 Live Dashboard | [mlops-saylani.streamlit.app](https://mlops-saylani-9deyypoxdzmnsr4wvuyshg.streamlit.app/) |
+| 🧪 Experiment Tracking (DagsHub) | [dagshub.com/hammadAsher100/MLOps-Saylani](https://dagshub.com/hammadAsher100/MLOps-Saylani) |
+| 🐳 Docker Image | [hub.docker.com/r/hammadasher/bank_predict](https://hub.docker.com/repository/docker/hammadasher/bank_predict/general) |
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -39,7 +49,7 @@ bank_marketing_mlops/
 
 ### 1. Clone & Setup
 ```bash
-git clone https://github.com/your-org/bank-marketing-mlops.git
+git clone https://github.com/hammadAsher100/MLOps-Saylani.git
 cd bank_marketing_mlops
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -73,6 +83,19 @@ streamlit run streamlit_app.py
 mlflow ui --port 5000
 # UI: http://localhost:5000
 ```
+
+---
+
+## 🐳 Docker
+
+Pull and run the pre-built image from Docker Hub:
+
+```bash
+docker pull hammadasher/bank_predict:latest
+docker run -p 8000:8000 hammadasher/bank_predict:latest
+```
+
+Image: [hub.docker.com/r/hammadasher/bank_predict](https://hub.docker.com/repository/docker/hammadasher/bank_predict/general)
 
 ---
 
