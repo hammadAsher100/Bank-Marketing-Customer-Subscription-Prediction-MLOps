@@ -57,7 +57,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """
-    Server start hone par dono sklearn models preload karo.
+    Server start hone par teeno models preload karo.
     Isse pehli request slow nahi hogi.
     """
     print("[API] Preloading models...")
@@ -72,6 +72,13 @@ async def startup_event():
         print("[API] OK XGBoost model loaded")
     except FileNotFoundError as e:
         print(f"[API] WARN XGBoost not found: {e}")
+
+    try:
+        from src.models.predict import load_spark_model
+        load_spark_model()
+        print("[API] OK PySpark model loaded")
+    except Exception as e:
+        print(f"[API] WARN PySpark not available: {e}")
 
     print(f"[API] Server ready at http://localhost:{PORT}")
 
