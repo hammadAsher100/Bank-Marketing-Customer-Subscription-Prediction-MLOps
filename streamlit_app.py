@@ -6,10 +6,10 @@ Bank Marketing MLOps Dashboard - English Version
 import streamlit as st
 import requests
 import pandas as pd
-
 import os
 
-API_URL = os.environ.get("API_URL", "http://localhost:8000")
+# Get API URL from environment - Streamlit Secrets or env variables
+API_URL = os.environ.get("API_URL", "https://mlops-saylani.onrender.com")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STYLING & PAGE CONFIGURATION (UI layer only)

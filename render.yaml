@@ -1,0 +1,21 @@
+services:
+  # Backend API Service
+  - type: web
+    name: bank-marketing-api
+    env: python
+    plan: free
+    buildCommand: bash render-build.sh
+    startCommand: python app_render.py
+    healthCheckPath: /health
+    healthCheckInterval: 300
+    port: 8000
+
+  # Frontend Streamlit Service
+  - type: web
+    name: bank-marketing-frontend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements-frontend.txt
+    startCommand: streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0
+    depends_on: bank-marketing-api
+

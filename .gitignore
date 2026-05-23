@@ -23,11 +23,13 @@ ENV/
 /data_and_model/processed/
 /data_and_model/features/
 /data_and_model/models/
-!data_and_model/**/.gitkeep
+# But ALLOW trained model files for deployment
+!/data_and_model/models/*.pkl
+!/data_and_model/models/feature_columns.pkl
+!/data_and_model/models/pyspark_model/
 mlruns/
 mlartifacts/
 *.pkl
-*.joblib
 *.h5
 *.csv
 *.parquet
