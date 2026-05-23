@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.StringIndexerModel","timestamp":1779452782727,"sparkVersion":"3.5.1","uid":"StringIndexer_6a891c8cec8b","paramMap":{"inputCol":"education","outputCol":"education_index","handleInvalid":"keep"},"defaultParamMap":{"handleInvalid":"error","outputCol":"StringIndexer_6a891c8cec8b__output","stringOrderType":"frequencyDesc"}}
