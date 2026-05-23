@@ -3,23 +3,19 @@ services:
   - type: web
     name: bank-marketing-api
     env: python
-    plan: free  # Use 'starter' for production
-    buildCommand: pip install -r requirements.txt
+    plan: free
+    buildCommand: pip install -r requirements-backend.txt
     startCommand: python app_render.py
     healthCheckPath: /health
     healthCheckInterval: 300
-    envVars:
-      - key: PORT
-        value: 8000
+    port: 8000
 
   # Frontend Streamlit Service
   - type: web
     name: bank-marketing-frontend
     env: python
-    plan: free  # Use 'starter' for production
-    buildCommand: pip install -r requirements.txt
+    plan: free
+    buildCommand: pip install -r requirements-frontend.txt
     startCommand: streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0
-    envVars:
-      - key: API_URL
-        fromService: bank-marketing-api
-        property: url
+    depends_on: bank-marketing-api
+
