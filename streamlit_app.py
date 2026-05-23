@@ -9,14 +9,7 @@ import pandas as pd
 import os
 
 # Get API URL from environment - Streamlit Secrets or env variables
-try:
-    API_URL = st.secrets.get("API_URL")
-except:
-    API_URL = None
-
-# Fallback to environment variable or localhost
-if not API_URL:
-    API_URL = os.environ.get("API_URL", "https://mlops-saylani.onrender.com")
+API_URL = os.environ.get("API_URL", "https://mlops-saylani.onrender.com")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STYLING & PAGE CONFIGURATION (UI layer only)
