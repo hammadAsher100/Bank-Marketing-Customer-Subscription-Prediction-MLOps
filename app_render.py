@@ -10,8 +10,8 @@ print("[Startup] ═════════════════════
 print("[Startup] Starting Bank Marketing API Server")
 print("[Startup] ════════════════════════════════════════════")
 
-# Initialize models if they don't exist
-print("[Startup] Checking if models exist...")
+# Initialize sklearn models if they don't exist
+print("[Startup] Checking if sklearn models exist...")
 model_dir = Path("data_and_model/models")
 lgbm_exists = (model_dir / "lgbm_model.pkl").exists()
 xgb_exists = (model_dir / "xgb_model.pkl").exists()
@@ -20,17 +20,25 @@ print(f"[Startup] LightGBM model: {'✅ Found' if lgbm_exists else '❌ Not foun
 print(f"[Startup] XGBoost model: {'✅ Found' if xgb_exists else '❌ Not found'}")
 
 if not (lgbm_exists and xgb_exists):
-    print("[Startup] Models not found. Initializing...")
+    print("[Startup] Initializing sklearn models...")
     try:
-        # Import and run initialization
         sys.path.insert(0, str(Path(__file__).parent))
         import initialize_models
-        print("[Startup] ✅ Model initialization completed")
+        print("[Startup] ✅ Sklearn models initialized")
     except Exception as e:
-        print(f"[Startup] ⚠️  Model initialization error: {e}")
-        print("[Startup] Continuing... Models will be available after first train")
-else:
-    print("[Startup] ✅ Models ready to load")
+        print(f"[Startup] ⚠️  Error: {e}")
+
+# Check PySpark model
+pyspark_exists = (model_dir / "pyspark_model" / "metadata").exists()
+print(f"[Startup] PySpark model: {'✅ Found' if pyspark_exists else '❌ Not found'}")
+
+if not pyspark_exists:
+    print("[Startup] Attempting to initialize PySpark model...")
+    try:
+        import initialize_pyspark_model
+        print("[Startup] ✅ PySpark model initialized")
+    except Exception as e:
+        print(f"[Startup] ⚠️  PySpark initialization skipped: {e}")
 
 print("[Startup] ════════════════════════════════════════════")
 
