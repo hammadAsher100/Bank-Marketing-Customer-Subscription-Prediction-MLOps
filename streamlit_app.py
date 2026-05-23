@@ -27,31 +27,29 @@ _CUSTOM_CSS = """
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
     :root {
-        --bg-base: #0F172A;
-        --bg-elevated: #1E293B;
-        --bg-card: #1E293B;
-        --border: #334155;
-        --border-soft: #475569;
-        --accent: #2563EB;
+        --bg-base: var(--background-color, #0F172A);
+        --bg-elevated: var(--secondary-background-color, #1E293B);
+        --bg-card: var(--secondary-background-color, #1E293B);
+        --border: rgba(128, 128, 128, 0.15);
+        --border-soft: rgba(128, 128, 128, 0.25);
+        --accent: var(--primary-color, #2563EB);
         --accent-hover: #3B82F6;
         --accent-cyan: #0EA5E9;
-        --text-primary: #F8FAFC;
-        --text-secondary: #94A3B8;
-        --text-muted: #64748B;
+        --text-primary: var(--text-color, #F8FAFC);
         --success: #10B981;
-        --success-bg: #064E3B;
+        --success-bg: rgba(16, 185, 129, 0.15);
         --danger: #EF4444;
-        --danger-bg: #7F1D1D;
+        --danger-bg: rgba(239, 68, 68, 0.15);
         --warning: #F59E0B;
         --radius-sm: 8px;
         --radius-md: 12px;
         --radius-lg: 16px;
-        --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.25), 0 2px 4px -2px rgb(0 0 0 / 0.2);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+        --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.15), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.15);
     }
 
     .stApp {
-        background: linear-gradient(165deg, #0F172A 0%, #0B1220 45%, #0F172A 100%);
+        background: linear-gradient(165deg, var(--bg-base) 0%, var(--bg-elevated) 100%);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         color: var(--text-primary);
     }
@@ -67,15 +65,22 @@ _CUSTOM_CSS = """
     [data-testid="stMarkdownContainer"] h3 {
         font-family: 'Inter', sans-serif !important;
         letter-spacing: -0.02em;
+        color: var(--text-primary) !important;
     }
 
     p, label, .stMarkdown, span {
         font-family: 'Inter', sans-serif;
+        color: var(--text-primary);
+    }
+
+    label {
+        color: var(--text-primary) !important;
+        opacity: 0.9;
     }
 
     /* Sidebar */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0B1220 0%, #0F172A 100%) !important;
+        background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-base) 100%) !important;
         border-right: 1px solid var(--border) !important;
     }
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2 {
@@ -92,11 +97,12 @@ _CUSTOM_CSS = """
         letter-spacing: 0.08em;
     }
     [data-testid="stSidebar"] .stRadio > label {
-        color: var(--text-secondary) !important;
+        color: var(--text-primary) !important;
         font-weight: 600;
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
+        opacity: 0.8;
     }
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] {
         gap: 0.35rem;
@@ -110,18 +116,18 @@ _CUSTOM_CSS = """
     }
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] label:hover {
         border-color: var(--accent);
-        background: rgba(37, 99, 235, 0.12);
+        background: rgba(37, 99, 235, 0.08);
     }
     [data-testid="stSidebar"] .stRadio [role="radiogroup"] label[data-checked="true"],
     [data-testid="stSidebar"] .stRadio div[aria-checked="true"] label {
         border-color: var(--accent) !important;
-        background: rgba(37, 99, 235, 0.2) !important;
+        background: rgba(37, 99, 235, 0.15) !important;
         color: var(--text-primary) !important;
     }
 
     /* Metric cards */
     [data-testid="stMetric"] {
-        background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.9));
+        background: linear-gradient(145deg, var(--bg-elevated), var(--bg-base));
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
         padding: 1rem 1.15rem !important;
@@ -133,7 +139,8 @@ _CUSTOM_CSS = """
         transform: translateY(-1px);
     }
     [data-testid="stMetricLabel"] {
-        color: var(--text-secondary) !important;
+        color: var(--text-primary) !important;
+        opacity: 0.7;
         font-size: 0.78rem !important;
         font-weight: 600 !important;
         text-transform: uppercase;
@@ -156,14 +163,14 @@ _CUSTOM_CSS = """
         font-weight: 700 !important;
         font-size: 0.95rem !important;
         padding: 0.65rem 1.5rem !important;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
         transition: all 0.2s ease !important;
         letter-spacing: 0.02em;
     }
     .stButton > button:hover,
     [data-testid="stFormSubmitButton"] button:hover {
         background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%) !important;
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.55) !important;
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45) !important;
         transform: translateY(-1px);
     }
     .stButton > button:active {
@@ -179,13 +186,28 @@ _CUSTOM_CSS = """
         border-radius: var(--radius-sm) !important;
         color: var(--text-primary) !important;
     }
+    .stSelectbox div[data-baseweb="select"] > div,
+    .stNumberInput input,
+    .stTextInput input,
+    .stTextArea textarea {
+        color: var(--text-primary) !important;
+    }
     .stCheckbox label span {
-        color: var(--text-secondary) !important;
+        color: var(--text-primary) !important;
+        opacity: 0.85;
+    }
+
+    /* Sliders text visibility */
+    .stSlider [data-testid="stTickBarMin"],
+    .stSlider [data-testid="stTickBarMax"],
+    .stSlider [data-testid="stSliderVal"],
+    .stSlider span {
+        color: var(--text-primary) !important;
     }
 
     /* Containers with border */
     [data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(30, 41, 59, 0.45);
+        background: rgba(128, 128, 128, 0.05) !important;
         border: 1px solid var(--border) !important;
         border-radius: var(--radius-lg) !important;
         padding: 1.25rem 1.5rem !important;
@@ -213,8 +235,8 @@ _CUSTOM_CSS = """
 
     /* Custom UI blocks */
     .ui-hero {
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.18) 0%, rgba(14, 165, 233, 0.08) 100%);
-        border: 1px solid rgba(37, 99, 235, 0.35);
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(14, 165, 233, 0.05) 100%);
+        border: 1px solid rgba(37, 99, 235, 0.25);
         border-radius: var(--radius-lg);
         padding: 1.75rem 2rem;
         margin-bottom: 1.5rem;
@@ -225,14 +247,15 @@ _CUSTOM_CSS = """
         font-size: 1.85rem;
         font-weight: 800;
         color: var(--text-primary);
-        background: linear-gradient(90deg, #F8FAFC, #93C5FD);
+        background: linear-gradient(90deg, var(--text-primary), var(--accent-cyan));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
     .ui-hero p {
         margin: 0;
-        color: var(--text-secondary);
+        color: var(--text-primary);
+        opacity: 0.8;
         font-size: 1.05rem;
         line-height: 1.5;
     }
@@ -241,7 +264,7 @@ _CUSTOM_CSS = """
         margin-top: 0.85rem;
         padding: 0.35rem 0.85rem;
         background: rgba(14, 165, 233, 0.15);
-        border: 1px solid rgba(14, 165, 233, 0.4);
+        border: 1px solid rgba(14, 165, 233, 0.3);
         border-radius: 999px;
         font-size: 0.75rem;
         font-weight: 600;
@@ -256,28 +279,28 @@ _CUSTOM_CSS = """
         color: var(--accent-cyan);
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        border-bottom: 2px solid rgba(14, 165, 233, 0.35);
+        border-bottom: 2px solid rgba(14, 165, 233, 0.25);
         padding-bottom: 0.5rem;
         margin: 1.25rem 0 1rem 0;
     }
 
     .predict-yes {
-        background: linear-gradient(135deg, var(--success-bg) 0%, #065F46 100%);
+        background: linear-gradient(135deg, var(--success-bg) 0%, rgba(16, 185, 129, 0.25) 100%);
         border: 2px solid var(--success);
         border-radius: var(--radius-lg);
         padding: 2rem 1.5rem;
         text-align: center;
         margin: 0;
-        box-shadow: 0 0 40px rgba(16, 185, 129, 0.15);
+        box-shadow: 0 0 40px rgba(16, 185, 129, 0.1);
     }
     .predict-no {
-        background: linear-gradient(135deg, var(--danger-bg) 0%, #991B1B 100%);
+        background: linear-gradient(135deg, var(--danger-bg) 0%, rgba(239, 68, 68, 0.25) 100%);
         border: 2px solid var(--danger);
         border-radius: var(--radius-lg);
         padding: 2rem 1.5rem;
         text-align: center;
         margin: 0;
-        box-shadow: 0 0 40px rgba(239, 68, 68, 0.12);
+        box-shadow: 0 0 40px rgba(239, 68, 68, 0.08);
     }
     .predict-yes h2, .predict-no h2 {
         margin: 0;
@@ -289,7 +312,8 @@ _CUSTOM_CSS = """
     .predict-yes p, .predict-no p {
         margin: 0.65rem 0 0;
         font-size: 1.05rem;
-        color: var(--text-secondary);
+        color: var(--text-primary);
+        opacity: 0.8;
         line-height: 1.45;
     }
 
@@ -305,7 +329,8 @@ _CUSTOM_CSS = """
     .result-probability-label {
         font-size: 0.75rem;
         font-weight: 600;
-        color: var(--text-muted);
+        color: var(--text-primary);
+        opacity: 0.65;
         text-transform: uppercase;
         letter-spacing: 0.08em;
         text-align: center;
@@ -333,8 +358,9 @@ _CUSTOM_CSS = """
         justify-content: space-between;
         padding: 0.4rem 0;
         font-size: 0.88rem;
-        color: var(--text-secondary);
-        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        color: var(--text-primary);
+        opacity: 0.85;
+        border-bottom: 1px solid var(--border);
     }
     .sidebar-status-item:last-child { border-bottom: none; }
     .status-dot-on { color: var(--success); font-weight: 700; }
@@ -346,6 +372,7 @@ _CUSTOM_CSS = """
     }
     footer { visibility: hidden; }
 </style>
+
 """
 
 st.markdown(_CUSTOM_CSS, unsafe_allow_html=True)
