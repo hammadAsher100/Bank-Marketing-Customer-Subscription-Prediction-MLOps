@@ -80,3 +80,7 @@ docker-data/
 tmp/
 temp/
 .cache/
+
+
+data_and_model
+pipelines
