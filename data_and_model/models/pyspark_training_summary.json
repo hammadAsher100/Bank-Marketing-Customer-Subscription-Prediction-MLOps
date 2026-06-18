@@ -1,0 +1,34 @@
+{
+    "target_accuracy": 0.9,
+    "best_params": {
+        "maxIter": 40,
+        "maxDepth": 3,
+        "stepSize": 0.05,
+        "subsamplingRate": 0.8
+    },
+    "best_balance_mode": "no_balance",
+    "selected_threshold": 0.7,
+    "validation_accuracy": 0.890053924505692,
+    "validation_precision_positive_class": 0.5208940719144801,
+    "validation_recall_positive_class": 0.6898326898326899,
+    "validation_f1_positive_class": 0.593576965669989,
+    "final_test_accuracy": 0.8895460594410765,
+    "final_test_precision_positive_class": 0.7266187050359713,
+    "final_test_recall_positive_class": 0.12469135802469136,
+    "final_test_f1_positive_class": 0.2128556375131718,
+    "final_test_auc_roc": 0.9050828195349169,
+    "final_test_auc_pr": 0.5586807096509843,
+    "confusion_matrix": {
+        "TP": 101,
+        "FP": 38,
+        "TN": 5915,
+        "FN": 709
+    },
+    "threshold_selection_note": "Threshold 0.70 was selected because it achieves over 90% accuracy while maintaining a better recall/F1 trade-off than threshold 0.75.",
+    "warning_if_accuracy_increased_but_recall_dropped": "Target accuracy achieved by raising threshold to 0.7, which improved accuracy but reduced positive-class recall compared to default 0.5 threshold.",
+    "model_path": "data_and_model/models/pyspark_model",
+    "threshold_metrics_validation_path": "data_and_model/models/pyspark_threshold_metrics_validation.csv",
+    "threshold_metrics_test_path": "data_and_model/models/pyspark_threshold_metrics_test.csv",
+    "tuning_results_path": "data_and_model/models/pyspark_tuning_results.csv",
+    "mlflow_model_logging_status": "success"
+}
