@@ -1,0 +1,48 @@
+# Multi-stage build to reduce image size
+FROM python:3.10-slim-bookworm as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY requirements-backend.txt .
+RUN pip install --no-cache-dir --user -r requirements-backend.txt
+
+# Final stage
+FROM python:3.10-slim-bookworm
+
+WORKDIR /app
+
+# Install only runtime dependencies (removed Java/PySpark requirements)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    procps \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /root/.local
+
+# Update PATH
+ENV PATH="/root/.local/bin:${PATH}"
+
+# Application source
+COPY src/ /app/src/
+COPY params.yaml /app/
+COPY initialize_models.py /app/
+COPY app_render.py /app/
+
+# Model directory
+COPY data_and_model/models/ /app/data_and_model/models/
+
+# Model initialization during build
+RUN python initialize_models.py
+
+EXPOSE 8000
+
+CMD ["python", "app_render.py"]

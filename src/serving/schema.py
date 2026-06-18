@@ -93,7 +93,7 @@ class PredictRequest(BaseModel):
     )
 
     # ── Optional: override model choice and threshold ─────────────────────────
-    model_type: Literal["lgbm", "xgb", "pyspark"] = Field(
+    model_type: Literal["lgbm", "xgb"] = Field(
         default="lgbm", description="Which model to use for prediction"
     )
 
@@ -153,7 +153,6 @@ class HealthResponse(BaseModel):
     status:       str  = Field(..., example="ok")
     lgbm_loaded:  bool = Field(..., description="LightGBM model available?")
     xgb_loaded:   bool = Field(..., description="XGBoost model available?")
-    spark_model:  bool = Field(..., description="PySpark model available?")
     mlflow_db:    bool = Field(..., description="MLflow tracking DB found?")
 
 
@@ -163,7 +162,7 @@ class HealthResponse(BaseModel):
 class BatchPredictRequest(BaseModel):
     """For predicting multiple customers at once."""
     records:    list[PredictRequest]
-    model_type: Literal["lgbm", "xgb"] = "lgbm"   # pyspark excluded from batch (heavy)
+    model_type: Literal["lgbm", "xgb"] = "lgbm"
     threshold:  Optional[float] = None
 
 class BatchPredictResponse(BaseModel):

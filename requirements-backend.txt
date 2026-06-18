@@ -4,8 +4,12 @@ pydantic>=2.0.0
 pandas>=2.0.0
 numpy>=1.26.0
 scikit-learn>=1.3.0
-xgboost>=2.0.0
+imbalanced-learn>=0.11.0
+# Pin to 1.7.6 — xgboost 2.x pulls in 300MB+ CUDA packages on Linux even on CPU-only builds
+xgboost==1.7.6
 lightgbm>=4.0.0
 joblib>=1.3.0
 PyYAML>=6.0
+# mlflow needed for /mlflow-metrics endpoint — pin to avoid pulling torch/CUDA
+mlflow==2.10.1
 

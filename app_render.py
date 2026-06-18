@@ -6,13 +6,6 @@ import sys
 import os
 from pathlib import Path
 
-# Detect and set local JRE path (from portable installation on native Render)
-local_jre = Path(__file__).parent / "jre"
-if local_jre.exists():
-    os.environ["JAVA_HOME"] = str(local_jre.absolute())
-    os.environ["PATH"] = str(local_jre.absolute() / "bin") + os.pathsep + os.environ.get("PATH", "")
-    print(f"[Startup] Found local JRE at: {os.environ['JAVA_HOME']}")
-
 print("[Startup] ════════════════════════════════════════════")
 print("[Startup] Starting Bank Marketing API Server")
 print("[Startup] ════════════════════════════════════════════")
@@ -34,18 +27,6 @@ if not (lgbm_exists and xgb_exists):
         print("[Startup] ✅ Sklearn models initialized")
     except Exception as e:
         print(f"[Startup] ⚠️  Error: {e}")
-
-# Check PySpark model
-pyspark_exists = (model_dir / "pyspark_model" / "metadata").exists()
-print(f"[Startup] PySpark model: {'✅ Found' if pyspark_exists else '❌ Not found'}")
-
-if not pyspark_exists:
-    print("[Startup] Attempting to initialize PySpark model...")
-    try:
-        import initialize_pyspark_model
-        print("[Startup] ✅ PySpark model initialized")
-    except Exception as e:
-        print(f"[Startup] ⚠️  PySpark initialization skipped: {e}")
 
 print("[Startup] ════════════════════════════════════════════")
 

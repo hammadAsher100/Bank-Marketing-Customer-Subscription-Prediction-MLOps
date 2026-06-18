@@ -14,11 +14,6 @@ PARAMS     = yaml.safe_load(open(ROOT / "params.yaml"))
 MODEL_DIR  = Path(PARAMS["model"]["output_dir"])          # data_and_model/models
 THRESHOLD  = float(PARAMS["model"].get("threshold", 0.5))
 
-# PySpark model path (for GBT)
-SPARK_MODEL_PATH = PARAMS["pyspark"]["model_path"]        # data_and_model/models/pyspark_model
-# Recommended threshold from pyspark training summary
-SPARK_THRESHOLD  = 0.70   # as set in pyspark train.py
-
 # ── Feature columns (saved during training) ───────────────────────────────────
 # These are the exact columns the sklearn models were trained on.
 # Loaded lazily so startup doesn't fail if file doesn't exist yet.
@@ -66,87 +61,7 @@ def load_sklearn_model(model_name: Literal["lgbm", "xgb"] = "lgbm"):
     return _model_cache[model_name]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PYSPARK MODEL LOADER  (GBT Pipeline)
-# ═══════════════════════════════════════════════════════════════════════════════
-_spark_model_cache = None
 
-def load_spark_model():
-    """
-    Load the PySpark PipelineModel from disk.
-    Only imported when needed to avoid Spark startup cost.
-    Validates model exists BEFORE starting SparkSession to fail fast.
-
-    Memory settings are read from env vars first, falling back to params.yaml.
-    Set SPARK_DRIVER_MEMORY / SPARK_EXECUTOR_MEMORY in the environment to
-    override the defaults (e.g. Dockerfile.api sets them to 512m for Render).
-    """
-    global _spark_model_cache
-    if _spark_model_cache is None:
-        import sys
-        import os
-
-        # ── Python executable: driver & workers must use the same binary ──────
-        # If env vars are already set (e.g. by Dockerfile ENV), keep them.
-        # Otherwise fall back to the current interpreter.
-        if "PYSPARK_PYTHON" not in os.environ:
-            os.environ["PYSPARK_PYTHON"] = sys.executable
-        if "PYSPARK_DRIVER_PYTHON" not in os.environ:
-            os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-
-        # ── Java JRE: detect local portable JRE (for native Render environment) 
-        local_jre = Path(ROOT) / "jre"
-        if local_jre.exists() and "JAVA_HOME" not in os.environ:
-            os.environ["JAVA_HOME"] = str(local_jre.absolute())
-            os.environ["PATH"] = str(local_jre.absolute() / "bin") + os.pathsep + os.environ.get("PATH", "")
-
-        # ── Windows-only: Hadoop winutils ─────────────────────────────────────
-        if sys.platform == "win32":
-            hadoop_home = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "..", "..", "hadoop")
-            )
-            os.environ["HADOOP_HOME"] = hadoop_home
-            os.environ["PATH"] = (
-                os.path.join(hadoop_home, "bin") + os.pathsep + os.environ.get("PATH", "")
-            )
-
-        # ── Validate model exists BEFORE starting expensive SparkSession ──────
-        model_path = Path(SPARK_MODEL_PATH)
-        if not model_path.exists():
-            raise FileNotFoundError(
-                f"PySpark model not found at {model_path}. "
-                "Run the PySpark training pipeline first: "
-                "python src/pyspark_workflow/run_pyspark_pipeline.py"
-            )
-        if not (model_path / "metadata").exists():
-            raise FileNotFoundError(
-                f"PySpark model at {model_path} is incomplete (missing metadata/). "
-                "The model may not have been trained successfully. "
-                "Re-run: python src/pyspark_workflow/run_pyspark_pipeline.py"
-            )
-
-        # ── Memory: env vars override params.yaml (Docker sets 512m) ─────────
-        driver_mem   = os.environ.get("SPARK_DRIVER_MEMORY",   PARAMS["pyspark"]["driver_memory"])
-        executor_mem = os.environ.get("SPARK_EXECUTOR_MEMORY", PARAMS["pyspark"]["executor_memory"])
-
-        from pyspark.sql import SparkSession
-        from pyspark.ml import PipelineModel
-
-        spark = (
-            SparkSession.builder
-            .appName("BankMarketing_Serving")
-            .config("spark.driver.memory",          driver_mem)
-            .config("spark.executor.memory",         executor_mem)
-            .config("spark.python.use.daemon",       "false")
-            .config("spark.sql.shuffle.partitions",  "2")   # reduce overhead
-            .config("spark.default.parallelism",     "2")
-            .getOrCreate()
-        )
-        spark.sparkContext.setLogLevel("ERROR")
-
-        _spark_model_cache = (spark, PipelineModel.load(str(model_path)))
-        print(f"[predict] Loaded PySpark model from {model_path}")
-    return _spark_model_cache
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -196,7 +111,7 @@ def align_input(input_df: pd.DataFrame) -> pd.DataFrame:
 # ═══════════════════════════════════════════════════════════════════════════════
 def predict(
     input_data: dict,
-    model_type: Literal["lgbm", "xgb", "pyspark"] = "lgbm",
+    model_type: Literal["lgbm", "xgb"] = "lgbm",
     threshold: float | None = None,
 ) -> dict:
     """
@@ -205,7 +120,7 @@ def predict(
     Parameters
     ----------
     input_data  : dict of raw feature values (from PredictRequest schema)
-    model_type  : "lgbm" | "xgb" | "pyspark"
+    model_type  : "lgbm" | "xgb"
     threshold   : override decision threshold (defaults to params.yaml value)
 
     Returns
@@ -217,73 +132,13 @@ def predict(
         threshold_used  : float
         label           : str ("Will Subscribe" / "Will NOT Subscribe")
     """
+    model    = load_sklearn_model(model_type)
+    raw_df   = pd.DataFrame([input_data])
+    aligned  = align_input(raw_df)
 
-    # ── PySpark path ──────────────────────────────────────────────────────────
-    if model_type == "pyspark":
-        try:
-            spark, spark_model = load_spark_model()
-            from pyspark.ml.functions import vector_to_array
-
-            raw_df   = pd.DataFrame([input_data])
-            
-            # Add engineered features expected by PySpark
-            avg_duration = raw_df["duration"].mean() if len(raw_df) > 1 else raw_df["duration"].iloc[0]
-            raw_df["contacted_before"] = (raw_df["pdays"] != -1).astype(int)
-            raw_df["is_long_call"]     = (raw_df["duration"] > avg_duration).astype(int)
-            raw_df["pdays_clipped"]    = raw_df["pdays"].clip(lower=0, upper=900)
-            raw_df.loc[raw_df["pdays"] == -1, "pdays_clipped"] = 0
-            raw_df["call_intensity"]   = np.log1p(raw_df["campaign"] * raw_df["duration"])
-            if "poutcome" in raw_df.columns:
-                raw_df["prev_success"] = (raw_df["poutcome"] == "success").astype(int)
-
-            spark_df = spark.createDataFrame(raw_df)
-
-            preds    = spark_model.transform(spark_df)
-            prob_row = preds.select(vector_to_array("probability")[1].alias("prob_1")).collect()
-            prob     = float(prob_row[0]["prob_1"])
-
-            t          = threshold if threshold is not None else SPARK_THRESHOLD
-            prediction = int(prob >= t)
-            
-            label = "Will Subscribe ✅" if prediction == 1 else "Will NOT Subscribe ❌"
-
-            return {
-                "prediction":     prediction,
-                "probability":    round(prob, 4),
-                "model_used":     model_type,
-                "threshold_used": t,
-                "label":          label,
-            }
-        except Exception as e:
-            # PySpark prediction failed - print detailed error and gracefully fall back to LGBM
-            print(f"[predict] ❌ PySpark prediction FAILED: {e}")
-            print(f"[predict] Error type: {type(e).__name__}")
-            print("[predict] Automatically falling back to LightGBM model for prediction.")
-            
-            # Call predict recursively using lgbm
-            fallback_result = predict(
-                input_data=input_data,
-                model_type="lgbm",
-                threshold=threshold,
-            )
-            
-            # Customize the metadata for the user/frontend to clearly explain the fallback
-            fallback_result["model_used"] = "pyspark_fallback (lgbm)"
-            fallback_result["message"] = (
-                f"PySpark prediction engine failed (Reason: {str(e)[:80]}...). "
-                f"We have automatically routed your request to the LightGBM fallback model."
-            )
-            return fallback_result
-
-    # ── Sklearn path (LightGBM / XGBoost) ────────────────────────────────────
-    else:
-        model    = load_sklearn_model(model_type)
-        raw_df   = pd.DataFrame([input_data])
-        aligned  = align_input(raw_df)
-
-        prob       = float(model.predict_proba(aligned)[0, 1])
-        t          = threshold if threshold is not None else THRESHOLD
-        prediction = int(prob >= t)
+    prob       = float(model.predict_proba(aligned)[0, 1])
+    t          = threshold if threshold is not None else THRESHOLD
+    prediction = int(prob >= t)
 
     label = "Will Subscribe ✅" if prediction == 1 else "Will NOT Subscribe ❌"
 

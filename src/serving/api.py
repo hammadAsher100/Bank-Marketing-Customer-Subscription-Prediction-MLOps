@@ -32,7 +32,6 @@ Yeh API predict karta hai ke koi bank customer **term deposit subscribe karega y
 ### Models Available:
 - **lgbm** → LightGBM + Optuna tuned
 - **xgb**  → XGBoost + Optuna tuned  
-- **pyspark** → Spark GBT (heavy, threshold=0.70)
 
 ### How to use:
 1. `/health` check karo — models loaded hain ya nahi
@@ -57,7 +56,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """
-    Server start hone par teeno models preload karo.
+    Server start hone par dono models preload karo.
     Isse pehli request slow nahi hogi.
     """
     print("[API] Preloading models...")
@@ -72,13 +71,6 @@ async def startup_event():
         print("[API] OK XGBoost model loaded")
     except FileNotFoundError as e:
         print(f"[API] WARN XGBoost not found: {e}")
-
-    try:
-        from src.models.predict import load_spark_model
-        load_spark_model()
-        print("[API] OK PySpark model loaded")
-    except Exception as e:
-        print(f"[API] WARN PySpark not available: {e}")
 
     print(f"[API] Server ready at http://localhost:{PORT}")
 
@@ -106,15 +98,12 @@ def health_check():
     """
     lgbm_ok  = (MODEL_DIR / "lgbm_model.pkl").exists()
     xgb_ok   = (MODEL_DIR / "xgb_model.pkl").exists()
-    spark_dir = Path(PARAMS["pyspark"]["model_path"])
-    spark_ok = spark_dir.exists() and (spark_dir / "metadata").exists()
     mlflow_ok = (ROOT / "mlflow.db").exists()
 
     return HealthResponse(
         status="ok",
         lgbm_loaded=lgbm_ok,
         xgb_loaded=xgb_ok,
-        spark_model=spark_ok,
         mlflow_db=mlflow_ok,
     )
 
@@ -130,9 +119,8 @@ def predict_endpoint(request: PredictRequest):
     **model_type choices:**
     - `lgbm`    → LightGBM (fastest, recommended)
     - `xgb`     → XGBoost
-    - `pyspark` → Spark GBT (slow startup, threshold=0.70)
 
-    **threshold:** Optional — default params.yaml se aata hai (0.5 for sklearn, 0.70 for spark)
+    **threshold:** Optional — default params.yaml se aata hai (0.5)
     """
     try:
         # Pydantic model ko dict mein convert karo
@@ -161,7 +149,6 @@ def batch_predict_endpoint(request: BatchPredictRequest):
     ## Batch Predictions
 
     Multiple customers ka data ek saath bhejo.
-    PySpark model batch mein available nahi hai (too heavy).
 
     Returns predictions + summary stats.
     """

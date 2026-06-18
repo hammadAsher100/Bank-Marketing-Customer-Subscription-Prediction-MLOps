@@ -44,6 +44,7 @@ mlartifacts/
 *.pem
 *.key
 secrets/
+aws-info.txt
 .ipynb_checkpoints/
 notebooks/.ipynb_checkpoints/
 .pytest_cache/

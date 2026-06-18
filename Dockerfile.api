@@ -1,45 +1,26 @@
-FROM python:3.9-slim
+FROM python:3.10-slim-bookworm
 
 WORKDIR /app
 
-# Install system dependencies:
-#   openjdk-11-jre-headless  → Java runtime required by PySpark
-#   libgomp1                 → OpenMP required by LightGBM/XGBoost
-#   procps                   → ps command (useful for debugging Spark workers)
+# Install system dependencies (removed Java/PySpark requirements)
+#   libgomp1  → OpenMP required by LightGBM/XGBoost
+#   procps    → ps command (useful for debugging)
+#   curl      → for healthchecks
 RUN apt-get update && apt-get install -y \
-    openjdk-11-jre-headless \
     libgomp1 \
     procps \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Java environment ───────────────────────────────────────────────────────────
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
-
-# ── PySpark Python paths ───────────────────────────────────────────────────────
-# Must point to the exact same Python executable to avoid
-# "Python in worker has different version" errors
-ENV PYSPARK_PYTHON=/usr/local/bin/python3.9
-ENV PYSPARK_DRIVER_PYTHON=/usr/local/bin/python3.9
-
-# ── Spark memory (tuned for Render free tier 512 MB RAM) ──────────────────────
-# Override params.yaml values which are 2g (too large for cloud free tier)
-ENV SPARK_DRIVER_MEMORY=512m
-ENV SPARK_EXECUTOR_MEMORY=512m
-
-# Disable Spark Python worker daemon to prevent zombie processes on Linux
-ENV SPARK_NO_DAEMONIZE=true
-
 # ── Python dependencies ────────────────────────────────────────────────────────
-# requirements.txt includes pyspark==3.5.1
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Use requirements-backend.txt (lean — no PySpark/Java bloat)
+COPY requirements-backend.txt .
+RUN pip install --no-cache-dir -r requirements-backend.txt
 
 # ── Application source ─────────────────────────────────────────────────────────
 COPY src/ /app/src/
 COPY params.yaml /app/
 COPY initialize_models.py /app/
-COPY initialize_pyspark_model.py /app/
 COPY app_render.py /app/
 
 # ── Model directory ────────────────────────────────────────────────────────────
@@ -50,7 +31,6 @@ COPY data_and_model/models/ /app/data_and_model/models/
 # ── Model initialisation during build ─────────────────────────────────────────
 # Runs only if model files are missing (skipped if COPY above brought them in)
 RUN python initialize_models.py
-RUN python initialize_pyspark_model.py
 
 EXPOSE 8000
 

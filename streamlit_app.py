@@ -409,8 +409,7 @@ def check_health():
 
 def make_prediction(payload):
     try:
-        # PySpark needs longer timeout due to SparkSession startup
-        timeout = 120 if payload.get("model_type") == "pyspark" else 30
+        timeout = 30
         r = requests.post(f"{API_URL}/predict", json=payload, timeout=timeout)
         if r.status_code == 200:
             return r.json()
@@ -423,9 +422,7 @@ def make_prediction(payload):
     except requests.exceptions.ReadTimeout:
         st.error(
             "⏱️ **Request timed out** — the server took too long to respond.\n\n"
-            "This usually happens when the PySpark model is loading for the first time "
-            "(SparkSession startup can take 30-60 seconds).\n\n"
-            "**Try again** — subsequent requests will be much faster."
+            "**Try again** or check if the server is running properly."
         )
         return None
     except requests.exceptions.ConnectionError:
@@ -466,7 +463,6 @@ with st.sidebar:
         status_rows = [
             ("LightGBM", health.get("lgbm_loaded")),
             ("XGBoost", health.get("xgb_loaded")),
-            ("PySpark", health.get("spark_model")),
             ("MLflow", health.get("mlflow_db")),
         ]
         for name, ok in status_rows:
@@ -497,7 +493,7 @@ if page == "🏠 Home":
     tab_overview, tab_models = st.tabs(["System Overview", "Model Registry"])
 
     with tab_overview:
-        col1, col2, col3 = st.columns(3, gap="medium")
+        col1, col2 = st.columns(2, gap="medium")
 
         with col1:
             with st.container(border=True):
@@ -509,17 +505,9 @@ if page == "🏠 Home":
 
         with col2:
             with st.container(border=True):
-                st.markdown('<div class="pipeline-card"><h3>⚡ PySpark Pipeline</h3></div>', unsafe_allow_html=True)
-                st.code(
-                    "Raw CSV\n  ↓\nSpark ETL\n  ↓\nGBT Training\n  ↓\nGrid Search\n  ↓\nThreshold Tuning\n  ↓\nMLflow Track",
-                    language=None,
-                )
-
-        with col3:
-            with st.container(border=True):
                 st.markdown('<div class="pipeline-card"><h3>🌐 Serving Layer</h3></div>', unsafe_allow_html=True)
                 st.code(
-                    "Streamlit UI\n  ↓\nHTTP Request\n  ↓\nFastAPI\n  ↓\npredict.py\n  ↓\n.pkl / Spark Model\n  ↓\nPrediction",
+                    "Streamlit UI\n  ↓\nHTTP Request\n  ↓\nFastAPI\n  ↓\npredict.py\n  ↓\n.pkl Model\n  ↓\nPrediction",
                     language=None,
                 )
 
@@ -528,10 +516,10 @@ if page == "🏠 Home":
         with st.container(border=True):
             st.dataframe(
                 pd.DataFrame({
-                    "Model":     ["LightGBM", "XGBoost", "PySpark GBT"],
-                    "Optimizer": ["Optuna TPE", "Optuna TPE", "Grid Search"],
-                    "Threshold": ["0.50 (params.yaml)", "0.50 (params.yaml)", "0.70 (fixed)"],
-                    "Tracking":  ["MLflow ✅", "MLflow ✅", "MLflow ✅"],
+                    "Model":     ["LightGBM", "XGBoost"],
+                    "Optimizer": ["Optuna TPE", "Optuna TPE"],
+                    "Threshold": ["0.50 (params.yaml)", "0.50 (params.yaml)"],
+                    "Tracking":  ["MLflow ✅", "MLflow ✅"],
                 }),
                 use_container_width=True,
                 hide_index=True,
@@ -554,8 +542,8 @@ elif page == "🔮 Predict":
         with col_m:
             model_type = st.selectbox(
                 "Select Model",
-                ["lgbm", "xgb", "pyspark"],
-                help="lgbm = LightGBM | xgb = XGBoost | pyspark = Spark GBT",
+                ["lgbm", "xgb"],
+                help="lgbm = LightGBM | xgb = XGBoost",
             )
         with col_t:
             use_custom = st.checkbox("Use Custom Threshold?")
@@ -564,7 +552,7 @@ elif page == "🔮 Predict":
                 threshold = st.slider(
                     "Decision Threshold",
                     0.0, 1.0,
-                    0.70 if model_type == "pyspark" else 0.50,
+                    0.50,
                     0.05,
                 )
 
