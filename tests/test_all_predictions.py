@@ -1,7 +1,7 @@
 """
 test_all_predictions.py
 Comprehensive test of all prediction endpoints with sample data.
-Tests: /health, /predict (lgbm, xgb, pyspark), /batch, /mlflow-metrics
+Tests: /health, /predict (lgbm, xgb), /batch, /mlflow-metrics
 """
 import requests
 import json
@@ -103,7 +103,7 @@ def validate_prediction_response(result, model_name):
         return False, f"Invalid prediction value: {result['prediction']}"
     if not (0.0 <= result["probability"] <= 1.0):
         return False, f"Probability out of range: {result['probability']}"
-    if result["model_used"] != model_name and not (model_name == "pyspark" and result["model_used"] == "lgbm_fallback"):
+    if result["model_used"] != model_name:
         return False, f"Expected model '{model_name}', got '{result['model_used']}'"
     if not isinstance(result["threshold_used"], (int, float)):
         return False, f"Invalid threshold: {result['threshold_used']}"
@@ -125,11 +125,6 @@ def test_health():
                     log_pass(f"  {key} = True")
                 else:
                     log_fail(f"  {key} = False (not available)")
-            # PySpark model may not be trained yet - report but don't fail
-            if data.get("spark_model"):
-                log_pass("  spark_model = True")
-            else:
-                log_pass("  spark_model = False (not trained yet - expected)")
         else:
             log_fail("Health endpoint", f"status={r.status_code}")
     except Exception as e:
@@ -187,45 +182,8 @@ def test_xgb_predictions():
         except Exception as e:
             log_fail(f"XGB: {sample['name']}", str(e))
 
-
 # ===========================================================================
-# TEST 4: PySpark Predictions
-# ===========================================================================
-def test_pyspark_predictions():
-    print("\n=== TEST 4: PySpark Predictions ===")
-    print("  (i) PySpark first call may take 30-60s (SparkSession startup)...")
-    for i, sample in enumerate(SAMPLE_CUSTOMERS):
-        payload = {**sample["data"], "model_type": "pyspark", "threshold": None}
-        try:
-            start = time.time()
-            r = requests.post(f"{API_URL}/predict", json=payload, timeout=120)
-            elapsed = time.time() - start
-            if r.status_code == 200:
-                result = r.json()
-                ok, err = validate_prediction_response(result, "pyspark")
-                if ok:
-                    label = "Yes" if result["prediction"] == 1 else "No"
-                    log_pass(
-                        f"PySpark: {sample['name']}",
-                        f"pred={label}, prob={result['probability']:.4f}, threshold={result['threshold_used']}, time={elapsed:.1f}s"
-                    )
-                else:
-                    log_fail(f"PySpark: {sample['name']}", err)
-            else:
-                detail = ""
-                try:
-                    detail = r.json().get("detail", r.text)
-                except Exception:
-                    detail = r.text
-                log_fail(f"PySpark: {sample['name']}", f"status={r.status_code}, {detail}")
-        except requests.exceptions.ReadTimeout:
-            log_fail(f"PySpark: {sample['name']}", "ReadTimeout (>120s)")
-        except Exception as e:
-            log_fail(f"PySpark: {sample['name']}", str(e))
-
-
-# ===========================================================================
-# TEST 5: Custom Threshold
+# TEST 4: Custom Threshold
 # ===========================================================================
 def test_custom_threshold():
     print("\n=== TEST 5: Custom Threshold ===")
@@ -252,10 +210,10 @@ def test_custom_threshold():
 
 
 # ===========================================================================
-# TEST 6: Batch Predictions
+# TEST 5: Batch Predictions
 # ===========================================================================
 def test_batch_predictions():
-    print("\n=== TEST 6: Batch Predictions ===")
+    print("\n=== TEST 5: Batch Predictions ===")
     records = []
     for s in SAMPLE_CUSTOMERS:
         rec = {**s["data"], "model_type": "lgbm", "threshold": None}
@@ -290,10 +248,10 @@ def test_batch_predictions():
 
 
 # ===========================================================================
-# TEST 7: MLflow Metrics
+# TEST 6: MLflow Metrics
 # ===========================================================================
 def test_mlflow_metrics():
-    print("\n=== TEST 7: MLflow Metrics ===")
+    print("\n=== TEST 6: MLflow Metrics ===")
     try:
         r = requests.get(f"{API_URL}/mlflow-metrics", timeout=10)
         if r.status_code == 200:
@@ -311,10 +269,10 @@ def test_mlflow_metrics():
 
 
 # ===========================================================================
-# TEST 8: Edge Cases & Validation
+# TEST 7: Edge Cases & Validation
 # ===========================================================================
 def test_edge_cases():
-    print("\n=== TEST 8: Edge Cases & Validation ===")
+    print("\n=== TEST 7: Edge Cases & Validation ===")
 
     # Test with invalid age (should fail validation)
     bad_payload = {
@@ -392,7 +350,6 @@ if __name__ == "__main__":
     test_health()
     test_lgbm_predictions()
     test_xgb_predictions()
-    test_pyspark_predictions()
     test_custom_threshold()
     test_batch_predictions()
     test_mlflow_metrics()
