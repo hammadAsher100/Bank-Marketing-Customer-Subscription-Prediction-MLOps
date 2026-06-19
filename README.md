@@ -14,6 +14,19 @@ license: mit
 
 A production-grade MLOps pipeline to predict whether a bank client will subscribe to a term deposit based on direct marketing campaign data.
 
+## 🌐 Live Demo
+
+**Try it now:** [https://huggingface.co/spaces/Unknown213141/BankPrediction](https://huggingface.co/spaces/Unknown213141/BankPrediction)
+
+## 🔗 Quick Links
+
+| Resource | Link | Description |
+|----------|------|-------------|
+| 🚀 **Live Demo** | [Hugging Face Spaces](https://huggingface.co/spaces/Unknown213141/BankPrediction) | Try the app now! |
+| 💻 **Source Code** | [GitHub Repository](https://github.com/hammadAsher100/Bank-Marketing-Customer-Subscription-Prediction-MLOps) | Full source code |
+| 🐳 **Docker - Backend** | [mlops-saylani-api](https://hub.docker.com/r/hammadasher/mlops-saylani-api) | FastAPI container |
+| 🐳 **Docker - Frontend** | [mlops-saylani-frontend](https://hub.docker.com/r/hammadasher/mlops-saylani-frontend) | Streamlit container |
+
 ---
 
 ## 🚀 Features
@@ -109,9 +122,21 @@ docker run -p 8501:8501 -e API_URL=http://localhost:8000 hammadasher/mlops-sayla
 
 ## 🤗 Hugging Face Spaces Deployment
 
-Live demo available at: **[https://huggingface.co/spaces/Unknown213141/BankPrediction](https://huggingface.co/spaces/Unknown213141/BankPrediction)**
+**🌟 Live Application:** [https://huggingface.co/spaces/Unknown213141/BankPrediction](https://huggingface.co/spaces/Unknown213141/BankPrediction)
 
-This project uses Hugging Face's native Streamlit SDK for easy deployment without Docker.
+This project is deployed on Hugging Face Spaces using the native Streamlit SDK (no Docker required). The deployment automatically:
+- Builds on every `git push`
+- Installs dependencies from `requirements.txt`
+- Loads pre-trained ML models
+- Starts FastAPI backend and Streamlit frontend
+- Provides HTTPS access with automatic scaling
+
+### Features Available on Live Demo:
+- ✅ **Real-time Predictions** - Input customer data and get instant predictions
+- ✅ **Multiple Models** - Choose between LightGBM and XGBoost
+- ✅ **MLflow Metrics** - View training experiment results and model performance
+- ✅ **Batch Predictions** - Upload CSV files for bulk predictions
+- ✅ **Interactive Dashboard** - Beautiful, responsive UI with dark theme
 
 ---
 
