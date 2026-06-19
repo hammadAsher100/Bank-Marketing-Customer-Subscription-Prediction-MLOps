@@ -1,3 +1,15 @@
+---
+title: Bank Marketing Prediction
+emoji: 🏦
+colorFrom: blue
+colorTo: purple
+sdk: streamlit
+sdk_version: "1.41.1"
+app_file: streamlit_app.py
+pinned: false
+license: mit
+---
+
 # 🏦 Bank Marketing Term Deposit Prediction — MLOps Project
 
 A production-grade MLOps pipeline to predict whether a bank client will subscribe to a term deposit based on direct marketing campaign data.
@@ -54,9 +66,52 @@ python app.py
 
 ---
 
-## 🤗 Deploy to Hugging Face Spaces
+## 🐳 Docker Deployment
 
-This project is optimized for deployment on Hugging Face Spaces. Follow the deployment steps in the chat above.
+### Quick Start with Docker Compose
+
+```bash
+# Clone the repository
+git clone https://github.com/hammadAsher100/Bank-Marketing-Customer-Subscription-Prediction-MLOps.git
+cd Bank-Marketing-Customer-Subscription-Prediction-MLOps
+
+# Start both services
+docker-compose up -d
+
+# Access the application
+# Frontend: http://localhost:8501
+# API Docs: http://localhost:8000/docs
+```
+
+### Docker Hub Images
+
+Pre-built Docker images are available:
+
+**Backend API:**
+- **Image:** `hammadasher/mlops-saylani-api:latest`
+- **Docker Hub:** [hammadasher/mlops-saylani-api](https://hub.docker.com/r/hammadasher/mlops-saylani-api)
+
+```bash
+docker pull hammadasher/mlops-saylani-api:latest
+docker run -p 8000:8000 hammadasher/mlops-saylani-api:latest
+```
+
+**Frontend Dashboard:**
+- **Image:** `hammadasher/mlops-saylani-frontend:latest`
+- **Docker Hub:** [hammadasher/mlops-saylani-frontend](https://hub.docker.com/r/hammadasher/mlops-saylani-frontend)
+
+```bash
+docker pull hammadasher/mlops-saylani-frontend:latest
+docker run -p 8501:8501 -e API_URL=http://localhost:8000 hammadasher/mlops-saylani-frontend:latest
+```
+
+---
+
+## 🤗 Hugging Face Spaces Deployment
+
+Live demo available at: **[https://huggingface.co/spaces/Unknown213141/BankPrediction](https://huggingface.co/spaces/Unknown213141/BankPrediction)**
+
+This project uses Hugging Face's native Streamlit SDK for easy deployment without Docker.
 
 ---
 
