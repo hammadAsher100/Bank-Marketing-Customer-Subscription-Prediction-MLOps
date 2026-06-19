@@ -9,7 +9,9 @@ import pandas as pd
 import os
 
 # Get API URL from environment - Streamlit Secrets or env variables
-API_URL = os.environ.get("API_URL", "https://mlops-saylani.onrender.com")
+# In Docker Compose, this will be "http://api:8000"
+# For local testing without Docker, use "http://localhost:8000"
+API_URL = os.environ.get("API_URL", "http://api:8000")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STYLING & PAGE CONFIGURATION (UI layer only)
@@ -402,8 +404,12 @@ def _page_hero(title: str, subtitle: str, badge: str = ""):
 
 def check_health():
     try:
-        r = requests.get(f"{API_URL}/health", timeout=3)
+        r = requests.get(f"{API_URL}/health", timeout=5)
         return r.json() if r.status_code == 200 else None
+    except requests.exceptions.Timeout:
+        return None
+    except requests.exceptions.ConnectionError:
+        return None
     except Exception:
         return None
 
@@ -426,7 +432,8 @@ def make_prediction(payload):
         )
         return None
     except requests.exceptions.ConnectionError:
-        st.error("Cannot connect to FastAPI. Run: `uvicorn src.serving.api:app --reload --port 8000`")
+        st.error("⚠️ **Cannot connect to prediction service**\n\n"
+                 "The API server may be starting up. Please wait a moment and try again.")
         return None
     except requests.exceptions.RequestException as e:
         st.error(f"Request failed: {e}")
@@ -455,11 +462,10 @@ with st.sidebar:
     )
 
     st.divider()
-    st.markdown("### 🔌 API Status")
+    st.markdown("### 📊 Model Status")
 
     health = check_health()
     if health:
-        st.success("FastAPI: Online ✅")
         status_rows = [
             ("LightGBM", health.get("lgbm_loaded")),
             ("XGBoost", health.get("xgb_loaded")),
@@ -472,8 +478,7 @@ with st.sidebar:
                 unsafe_allow_html=True,
             )
     else:
-        st.error("FastAPI: Offline ❌")
-        st.info("Run:\n```\nuvicorn src.serving.api:app --reload --port 8000\n```")
+        st.warning("⚠️ Unable to connect to API")
 
     st.divider()
     st.caption("Bank Marketing MLOps | Saylani Welfare Trust")
@@ -690,10 +695,16 @@ elif page == "📊 MLflow Metrics":
 
     data = get_mlflow_metrics()
     if data is None:
-        st.error("Cannot connect to FastAPI server.")
+        st.warning("⚠️ Cannot connect to API server")
+        st.info("💡 The MLflow metrics feature requires:\n\n"
+                "1. API server to be running\n"
+                "2. Model training to have been completed at least once\n\n"
+                "To generate metrics, run: `python src/models/train.py`")
     elif "error" in data:
         st.warning(f"⚠️ {data['error']}")
-        st.info("Run `python src/models/train.py` first to generate MLflow runs.")
+        st.info("💡 **How to fix:**\n\n"
+                "Run the training script to generate MLflow experiments:\n"
+                "```bash\npython src/models/train.py\n```")
     else:
         st.toast(f"Loaded experiment: {data['experiment']}", icon="📊")
         st.success(f"✅ Experiment: **{data['experiment']}**")
