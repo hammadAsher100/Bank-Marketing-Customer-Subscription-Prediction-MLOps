@@ -4,98 +4,59 @@ A production-grade MLOps pipeline to predict whether a bank client will subscrib
 
 ---
 
-## 🔗 Live Links
+## 🚀 Features
 
-| Resource | Link |
-|---|---|
-| 🌐 Live Dashboard | [mlops-saylani.streamlit.app](https://mlops-saylani-9deyypoxdzmnsr4wvuyshg.streamlit.app/) |
-| 🧪 Experiment Tracking (DagsHub) | [dagshub.com/hammadAsher100/MLOps-Saylani](https://dagshub.com/hammadAsher100/MLOps-Saylani) |
-| 🐳 Docker Image | [hub.docker.com/r/hammadasher/bank_predict](https://hub.docker.com/repository/docker/hammadasher/bank_predict/general) |
+- **Machine Learning Models**: LightGBM and XGBoost with hyperparameter optimization
+- **Interactive Dashboard**: Real-time predictions with Streamlit UI
+- **REST API**: FastAPI backend for model serving
+- **Experiment Tracking**: MLflow integration for model versioning
+- **Data Pipeline**: Automated data validation, cleaning, and feature engineering
+- **Monitoring**: Model performance and data drift detection
 
 ---
 
 ## 📁 Project Structure
 
 ```
-bank_marketing_mlops/
-├── .dvc/                    # DVC configuration & remote
-├── .github/workflows/       # CI/CD & retraining pipelines
-├── data_and_model/          # Data & model artifacts (DVC-tracked)
-│   ├── raw/                 # bank-additional-full.csv (45,211 rows)
-│   ├── processed/           # Cleaned & balanced datasets
+├── data_and_model/          # Data & model artifacts
 │   ├── features/            # Feature-engineered outputs
-│   └── models/              # Trained .pkl files + metrics.json
+│   └── models/              # Trained .pkl files
 ├── src/
-│   ├── data_pipeline/       # Download → Validate → Clean → Engineer → Balance
-│   ├── models/              # Train → HyperOpt → Calibrate → Predict
-│   ├── serving/             # FastAPI schema + endpoints
-│   └── monitoring/          # Drift detection + PSI metrics
-├── tests/                   # Unit & integration tests (pytest)
-├── notebooks/               # EDA & model development (Jupyter)
-├── docker/                  # Dockerfiles for API and Streamlit
-├── kubernetes/              # K8s deployment, service, HPA
-├── terraform/               # Cloud infrastructure as code
-├── app.py                   # FastAPI entrypoint
-├── prediction.py            # Batch inference script
-├── streamlit_app.py         # Marketing team dashboard
-├── params.yaml              # All hyperparameters & config
-├── dvc.yaml                 # DVC pipeline stages
-└── requirements.txt         # Python dependencies
+│   ├── data_pipeline/       # Data processing pipeline
+│   ├── models/              # Model training and prediction
+│   ├── serving/             # FastAPI endpoints
+│   └── monitoring/          # Drift detection
+├── tests/                   # Unit & integration tests
+├── app.py                   # Hugging Face Spaces entrypoint
+├── streamlit_app.py         # Dashboard UI
+├── params.yaml              # Configuration
+└── requirements.txt         # Dependencies
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Local)
 
 ### 1. Clone & Setup
 ```bash
-git clone https://github.com/hammadAsher100/MLOps-Saylani.git
-cd bank_marketing_mlops
-python -m venv .venv && source .venv/bin/activate
+git clone https://github.com/hammadAsher100/Bank-Marketing-Customer-Subscription-Prediction-MLOps.git
+cd Bank-Marketing-Customer-Subscription-Prediction-MLOps
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env  # Fill in your credentials
 ```
 
-### 2. Pull Data with DVC
+### 2. Run Locally
 ```bash
-dvc pull
-```
-
-### 3. Run the Full Pipeline
-```bash
-dvc repro
-```
-
-### 4. Start the API
-```bash
-uvicorn app:app --reload --port 8000
-# Docs: http://localhost:8000/docs
-```
-
-### 5. Launch the Dashboard
-```bash
-streamlit run streamlit_app.py
-# Dashboard: http://localhost:8501
-```
-
-### 6. Track Experiments
-```bash
-mlflow ui --port 5000
-# UI: http://localhost:5000
+python app.py
+# Opens on http://localhost:7860
 ```
 
 ---
 
-## 🐳 Docker
+## 🤗 Deploy to Hugging Face Spaces
 
-Pull and run the pre-built image from Docker Hub:
-
-```bash
-docker pull hammadasher/bank_predict:latest
-docker run -p 8000:8000 hammadasher/bank_predict:latest
-```
-
-Image: [hub.docker.com/r/hammadasher/bank_predict](https://hub.docker.com/repository/docker/hammadasher/bank_predict/general)
+This project is optimized for deployment on Hugging Face Spaces. Follow the deployment steps in the chat above.
 
 ---
 
@@ -136,4 +97,32 @@ Image: [hub.docker.com/r/hammadasher/bank_predict](https://hub.docker.com/reposi
 - **Experiment tracking** with MLflow — all runs, params, and metrics logged
 - **Drift detection** with Evidently AI — auto-triggers retraining when PSI > 0.2
 - **Probability calibration** via Platt scaling for reliable confidence scores
-- **Model gate** in CI — blocks deployment if F1 < 0.60 or AUC < 0.75
+
+## 📊 Model Performance
+
+- **LightGBM & XGBoost** models with hyperparameter optimization
+- **Quality Gate**: F1 > 0.60, AUC > 0.75
+- **Balanced Classes**: SMOTE for handling imbalanced data
+- **Experiment Tracking**: MLflow for version control
+
+---
+
+## 🛠️ Tech Stack
+
+- **ML**: scikit-learn, LightGBM, XGBoost, imbalanced-learn
+- **Web**: FastAPI, Streamlit, Uvicorn
+- **Tracking**: MLflow
+- **Data**: Pandas, NumPy
+- **Viz**: Plotly
+
+---
+
+## 📝 License
+
+MIT License - see LICENSE file for details
+
+---
+
+## 👥 Author
+
+Hammad Asher - [GitHub](https://github.com/hammadAsher100)
