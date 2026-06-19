@@ -1,152 +1,164 @@
-# MLOps Saylani - Quick Start Guide
+# ⚡ Quick Start Guide
 
-## 🚀 Fastest Deployment Path (Recommended)
+## 🏠 Local Testing (5 Minutes)
 
-### Option A: Build on EC2 (5-10 minutes)
+### Step 1: Start Docker Desktop
+- Open Docker Desktop app
+- Wait for it to start (green icon)
 
-**Best for:** Large images, slow internet, or first-time deployment
-
-1. **Setup AWS** (one-time):
-   ```bash
-   aws configure  # Enter your AWS credentials
-   bash aws-setup.sh
-   ```
-
-2. **SSH into EC2**:
-   ```bash
-   ssh -i mlops-saylani-key.pem ec2-user@YOUR_EC2_IP
-   ```
-
-3. **Install Docker** (one-time):
-   ```bash
-   sudo yum update -y && sudo yum install -y docker git
-   sudo service docker start
-   sudo usermod -a -G docker ec2-user
-   sudo mkdir -p /usr/local/lib/docker/cli-plugins
-   sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
-     -o /usr/local/lib/docker/cli-plugins/docker-compose
-   sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-   exit && ssh -i mlops-saylani-key.pem ec2-user@YOUR_EC2_IP
-   ```
-
-4. **Deploy**:
-   ```bash
-   git clone https://github.com/hammadAsher100/MLOps-Saylani.git
-   cd MLOps-Saylani
-   docker build -f Dockerfile.api -t hammadasher/mlops-saylani-api:latest .
-   docker build -f Dockerfile.frontend -t hammadasher/mlops-saylani-frontend:latest .
-   docker compose up -d
-   ```
-
-5. **Access**:
-   - API: `http://YOUR_EC2_IP:8000/docs`
-   - Frontend: `http://YOUR_EC2_IP:8501`
-
----
-
-### Option B: Via DockerHub (10-30 minutes)
-
-**Best for:** Fast internet, reusable images across multiple servers
-
-1. **Push to DockerHub** (locally):
-   ```cmd
-   push-images.cmd
-   ```
-   Wait for completion (API image is 2.69GB)
-
-2. **Setup AWS**:
-   ```bash
-   aws configure
-   bash aws-setup.sh
-   ```
-
-3. **Deploy on EC2**:
-   ```bash
-   ssh -i mlops-saylani-key.pem ec2-user@YOUR_EC2_IP
-   
-   # Install Docker (see Option A step 3)
-   
-   # Deploy from DockerHub
-   mkdir mlops-saylani && cd mlops-saylani
-   curl -O https://raw.githubusercontent.com/hammadAsher100/MLOps-Saylani/main/docker-compose.prod.yml
-   mv docker-compose.prod.yml docker-compose.yml
-   docker compose pull
-   docker compose up -d
-   ```
-
----
-
-## 📊 Current Status
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Docker Images | ✅ Built | Both images ready locally |
-| Frontend on DockerHub | ✅ Pushed | 1.15GB |
-| API on DockerHub | ⏳ Pushing | 2.69GB - in progress |
-| AWS CLI | ✅ Installed | Needs configuration |
-| Deployment Scripts | ✅ Ready | All scripts created |
-
----
-
-## 🛠️ Available Scripts
-
-| Script | Purpose | When to Use |
-|--------|---------|-------------|
-| `push-images.cmd` | Push to DockerHub | Option B deployment |
-| `aws-setup.sh` | Create AWS infrastructure | First-time AWS setup |
-| `build-on-ec2.sh` | Build on EC2 | Option A deployment |
-| `deploy.sh` | Redeploy updates | After code changes |
-
----
-
-## 📁 Key Files
-
-- `AWS_DEPLOYMENT.md` - Complete deployment guide
-- `DOCKERHUB_PUSH_FIX.md` - Solutions for push issues
-- `DEPLOYMENT_STATUS.md` - Detailed progress tracker
-- `docker-compose.yml` - Local development
-- `docker-compose.prod.yml` - Production (pulls from DockerHub)
-
----
-
-## 🔍 Troubleshooting
-
-### Docker push timing out?
-→ Use **Option A** (Build on EC2)
-
-### AWS credentials not configured?
+### Step 2: Start Application
 ```bash
-aws configure
+docker-compose up -d
 ```
 
-### Can't SSH into EC2?
+### Step 3: Access
+- **API:** http://localhost:8000/docs
+- **Frontend:** http://localhost:8501
+
+### Step 4: Test
 ```bash
-chmod 400 mlops-saylani-key.pem
+curl http://localhost:8000/health
+python test_api_quick.py
 ```
 
-### Services not starting?
+### Step 5: Stop
 ```bash
-docker compose logs
+docker-compose down
+```
+
+**📖 Full Guide:** See `LOCAL_TESTING.md`
+
+---
+
+## ☁️ AWS Free Tier Deployment (30 Minutes)
+
+### Quick Overview:
+1. **Create AWS account** → https://aws.amazon.com/free/
+2. **Launch EC2 t2.micro** (FREE for 12 months)
+3. **Download key pair** (.pem file)
+4. **Open ports:** 22, 8000, 8501
+5. **SSH to EC2:** `ssh -i key.pem ec2-user@YOUR_IP`
+6. **Install Docker & Docker Compose**
+7. **Clone & Run:** 
+   ```bash
+   git clone <your-repo>
+   docker-compose up -d
+   ```
+8. **Access:** http://YOUR_EC2_IP:8501
+
+**📖 Full Guide:** See `AWS_FREE_TIER_DEPLOYMENT.md`
+
+---
+
+## 📚 Documentation Index
+
+| File | Description |
+|------|-------------|
+| **LOCAL_TESTING.md** | Complete local testing guide |
+| **AWS_FREE_TIER_DEPLOYMENT.md** | Step-by-step AWS deployment |
+| **PYSPARK_REMOVAL_SUMMARY.md** | Technical changes made |
+| **DEPLOYMENT_CHECKLIST.md** | Deployment checklist |
+| **GITHUB_DEPLOYMENT_STATUS.md** | GitHub sync status |
+| **FINAL_STATUS.md** | Overall project status |
+
+---
+
+## 🆘 Quick Help
+
+### Local Issues:
+- **Docker not starting?** Restart Docker Desktop
+- **Port busy?** Check `netstat -ano | findstr :8000`
+- **Containers won't start?** Check logs: `docker-compose logs`
+
+### AWS Issues:
+- **Can't connect?** Check security group (ports 22, 8000, 8501)
+- **SSH fails?** Verify key file permissions
+- **Website not loading?** Check EC2 instance is running
+
+---
+
+## ✅ Success Checklist
+
+### Local Testing:
+- [ ] Docker Desktop running
+- [ ] `docker-compose ps` shows 2 containers
+- [ ] Health check returns OK
+- [ ] Can access http://localhost:8501
+
+### AWS Deployment:
+- [ ] EC2 instance launched (t2.micro)
+- [ ] Security groups configured
+- [ ] Can SSH to instance
+- [ ] Docker installed
+- [ ] Application running
+- [ ] Can access http://YOUR_EC2_IP:8501
+
+---
+
+## 🎯 What You Get
+
+### Features:
+- ✅ **2 ML Models:** LightGBM & XGBoost
+- ✅ **REST API:** FastAPI with Swagger docs
+- ✅ **Web UI:** Streamlit dashboard
+- ✅ **MLflow Integration:** Experiment tracking
+- ✅ **Production Ready:** Docker containers
+- ✅ **Free Hosting:** AWS free tier eligible
+
+### Performance:
+- **Startup Time:** <5 seconds
+- **Memory Usage:** ~1.5 GB
+- **Docker Image:** ~1.5 GB total
+- **Models:** LightGBM (fast), XGBoost (accurate)
+
+---
+
+## 🚀 Next Steps
+
+1. **Test Locally:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Deploy to AWS:**
+   - Follow `AWS_FREE_TIER_DEPLOYMENT.md`
+   - Get your public IP
+   - Share with the world!
+
+3. **Monitor:**
+   - Check AWS Free Tier usage
+   - View logs: `docker-compose logs`
+   - Stop when not needed to save resources
+
+---
+
+## 📱 Quick Commands
+
+```bash
+# Local
+docker-compose up -d              # Start
+docker-compose down               # Stop
+docker-compose logs -f            # View logs
+curl http://localhost:8000/health # Test
+
+# AWS
+ssh -i key.pem ec2-user@IP        # Connect
+cd ~/mlops-saylani                # Go to app
+docker-compose up -d              # Start
+docker-compose logs -f            # View logs
 ```
 
 ---
 
-## 💡 Recommendations
+## 🎉 You're Ready!
 
-1. **First deployment?** → Use Option A (Build on EC2)
-2. **Multiple servers?** → Use Option B (DockerHub)
-3. **Development?** → Use local `docker compose up`
-4. **Production?** → Use EC2 with proper security groups
+- 📖 Read the detailed guides
+- 🏠 Test locally first
+- ☁️ Deploy to AWS free tier
+- 🌐 Share your ML app with the world!
+
+**Good luck! 🚀**
 
 ---
 
-## 📞 Next Steps
-
-1. Choose your deployment option (A or B)
-2. Follow the steps above
-3. Access your application
-4. Monitor with `docker compose logs -f`
-
-**Estimated Total Time:**
-- Option A: 15-20 minutes
-- Option B: 30-45 minutes (if push completes)
+**Repository:** https://github.com/hammadAsher100/Bank-Marketing-Customer-Subscription-Prediction-MLOps
